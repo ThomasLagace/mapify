@@ -25,10 +25,8 @@ import net.minecraft.text.Text;
 public class MapifyCommand {
     private static final String commandString = "mapify";
     private static final String createCommandString = "create";
-    private static final String setCommandString = "set";
     private static final String nameArgumentString = "name";
     private static final String urlArgumentString = "url";
-    private static final String newNameArgumentString = "new_name";
 
     /**
      * Registers the /mapify command.
@@ -49,17 +47,15 @@ public class MapifyCommand {
         CommandManager.RegistrationEnvironment environment) {
 
         dispatcher.register(CommandManager.literal(commandString)
-                // /mapify create <name> <url>
+                // /mapify create <width> <height> <name> <url>
                 .then(CommandManager.literal(createCommandString)
                         .then(CommandManager.argument(nameArgumentString, StringArgumentType.string())
                                 .then(CommandManager.argument(urlArgumentString, StringArgumentType.greedyString())
                                         .executes(MapifyCommand::create))))
-
-                // /mapify set <name> <new_name>
-                .then(CommandManager.literal(setCommandString)
-                        .then(CommandManager.argument(nameArgumentString, StringArgumentType.string())
-                                .then(CommandManager.argument(newNameArgumentString, StringArgumentType.string())
-                                        .executes(MapifyCommand::set)))));
+                // /mapify get <name>
+                .then(CommandManager.literal("get")
+                        .then(CommandManager.argument("name", StringArgumentType.string())
+                                .executes(MapifyCommand::get))));
     }
 
     /**
@@ -94,12 +90,12 @@ public class MapifyCommand {
     }
 
     /**
-     * Listener for the /mapify set command.
+     * Listener for the /mapify get command.
      *
      * @param context The command context.
      * @return The result of the command.
      */
-    private static int set(CommandContext<ServerCommandSource> context) {
+    private static int get(CommandContext<ServerCommandSource> context) {
         return Command.SINGLE_SUCCESS;
     }
 }

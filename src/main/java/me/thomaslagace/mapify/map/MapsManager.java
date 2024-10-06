@@ -7,6 +7,9 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+
+import com.google.gson.GsonBuilder;
 import me.thomaslagace.mapify.Mapify;
 
 /**
@@ -25,11 +28,18 @@ public class MapsManager {
     }
 
     /**
-     * Adds a maps image to the manager.
+     * Adds a map image to the manager if an image with the same name and creator does not already exist.
      *
      * @param mapImage The maps image to add.
      */
     public static void add(MapImage mapImage) {
+        for (MapImage existingMapImage : mapImages) {
+            if (Objects.equals(existingMapImage.getName(), mapImage.getName())
+                && Objects.equals(existingMapImage.getCreatorId(), mapImage.getCreatorId())) {
+                throw new IllegalArgumentException("Image with the same name and creator already exists");
+            }
+        }
+
         mapImages.add(mapImage);
     }
 
@@ -98,7 +108,7 @@ public class MapsManager {
      * @param file The file to serialize the maps images to.
      */
     public static void serialize(File file) {
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
         String json = gson.toJson(mapImages);
 

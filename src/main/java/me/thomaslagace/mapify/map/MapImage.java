@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.URL;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 
 /**
@@ -40,6 +41,11 @@ public class MapImage {
 
         if (minecraftMapIds.length != width * height) {
             throw new IllegalArgumentException("Ids array must have a length equal to width * height");
+        }
+
+        Pattern pattern = Pattern.compile("[*?!@#$%^&(){}\\[\\]:;<>,./~`_+=|\\-]");
+        if (pattern.matcher(name).find()) {
+            throw new IllegalArgumentException("Name must not contain special characters");
         }
 
         this.creatorId = creatorId;
