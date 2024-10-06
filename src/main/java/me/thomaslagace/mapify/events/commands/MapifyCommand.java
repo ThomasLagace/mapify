@@ -5,10 +5,19 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import me.thomaslagace.mapify.map.MapsImage;
+import me.thomaslagace.mapify.map.MapsManager;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
+
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 public class MapifyCommand {
     private static final String commandString = "mapify";
@@ -26,7 +35,7 @@ public class MapifyCommand {
         dispatcher.register(CommandManager.literal(commandString)
                 .then(CommandManager.literal(createCommandString)
                         .then(CommandManager.argument(nameArgumentString, StringArgumentType.string())
-                                .then(CommandManager.argument(urlArgumentString, StringArgumentType.string())
+                                .then(CommandManager.argument(urlArgumentString, StringArgumentType.greedyString())
                                         .executes(MapifyCommand::create))))
                 .then(CommandManager.literal(setCommandString)
                         .then(CommandManager.argument(nameArgumentString, StringArgumentType.string())
@@ -35,6 +44,25 @@ public class MapifyCommand {
     }
 
     private static int create(CommandContext<ServerCommandSource> context) {
+        ServerCommandSource source = context.getSource();
+        if (!(source.getEntity() instanceof ServerPlayerEntity)) {
+            source.sendError(Text.literal("You must be a player to run this command"));
+            return 0;
+        }
+
+        URL url;
+        try {
+            URI uri = new URI(StringArgumentType.getString(context, urlArgumentString));
+            url = uri.toURL();
+        } catch (MalformedURLException | URISyntaxException e) {
+            source.sendError(Text.literal("Invalid URL"));
+            return 0;
+        }
+
+        MapsManager.add(new MapsImage(source.getPlayer().getUuid(),
+                StringArgumentType.getString(context, nameArgumentString),
+                url,
+                1, 1, new int[]{0}));
         return Command.SINGLE_SUCCESS;
     }
 
