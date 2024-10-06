@@ -9,7 +9,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.UUID;
-
 import me.thomaslagace.mapify.map.MapImage;
 import me.thomaslagace.mapify.map.MapsManager;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -50,10 +49,13 @@ public class MapifyCommand {
         CommandManager.RegistrationEnvironment environment) {
 
         dispatcher.register(CommandManager.literal(commandString)
+                // /mapify create <name> <url>
                 .then(CommandManager.literal(createCommandString)
                         .then(CommandManager.argument(nameArgumentString, StringArgumentType.string())
                                 .then(CommandManager.argument(urlArgumentString, StringArgumentType.greedyString())
                                         .executes(MapifyCommand::create))))
+
+                // /mapify set <name> <new_name>
                 .then(CommandManager.literal(setCommandString)
                         .then(CommandManager.argument(nameArgumentString, StringArgumentType.string())
                                 .then(CommandManager.argument(newNameArgumentString, StringArgumentType.string())

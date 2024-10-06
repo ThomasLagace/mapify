@@ -1,5 +1,8 @@
 package me.thomaslagace.mapify.map;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.net.URL;
 import java.util.UUID;
 
@@ -13,6 +16,8 @@ public class MapImage {
     private final int width;
     private final int height;
     private final int[] minecraftMapIds;
+
+    private static final String IMAGE_STORAGE_PATH = "mapify/images/";
 
     /**
      * Creates a new MapsImage.
@@ -67,5 +72,57 @@ public class MapImage {
 
     public int[] getMinecraftMapIds() {
         return minecraftMapIds;
+    }
+
+    /**
+     * Stores the image on disk. The image will be resized to the width and height of the image to make sure it doesn't
+     * store a huge image.
+     *
+     * @param image The image to store.
+     */
+    public void storeImage(BufferedImage image) {
+        File directory = new File(IMAGE_STORAGE_PATH + creatorId.toString());
+        if (!directory.exists() && !directory.mkdirs()) {
+            return;
+        }
+
+        File file = new File(directory, name + ".png");
+
+        BufferedImage resizedImage = resizeImage(image);
+
+        try {
+            ImageIO.write(resizedImage, "png", file);
+        } catch (Exception e) {
+            return;
+        }
+    }
+
+    /**
+     * Resizes the image to the width and height equivalent of map size.
+     *
+     * @param image The image to resize.
+     * @return The resized image.
+     */
+    public BufferedImage resizeImage(BufferedImage image) {
+        int newWidth = width * 128;
+        int newHeight = height * 128;
+        BufferedImage resizedImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
+        resizedImage.getGraphics().drawImage(image, 0, 0, newWidth, newHeight, null);
+        return resizedImage;
+    }
+
+    /**
+     * Loads the image from disk.
+     *
+     * @return The image.
+     */
+    public BufferedImage loadImage() {
+        File file = new File(IMAGE_STORAGE_PATH + creatorId.toString(), name + ".png");
+
+        try {
+            return ImageIO.read(file);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

@@ -13,7 +13,7 @@ import me.thomaslagace.mapify.Mapify;
  * Manages all the maps images.
  */
 public class MapsManager {
-    private static final List<MapImage> MAP_IMAGES = new ArrayList<>();
+    private static final List<MapImage> mapImages = new ArrayList<>();
 
     /**
      * Initializes the MapsManager by deserializing the maps images from a file.
@@ -30,7 +30,7 @@ public class MapsManager {
      * @param mapImage The maps image to add.
      */
     public static void add(MapImage mapImage) {
-        MAP_IMAGES.add(mapImage);
+        mapImages.add(mapImage);
     }
 
     /**
@@ -40,7 +40,7 @@ public class MapsManager {
      * @return True if the maps image was removed, false otherwise.
      */
     public static boolean remove(MapImage mapImage) {
-        return MAP_IMAGES.remove(mapImage);
+        return mapImages.remove(mapImage);
     }
 
     /**
@@ -49,7 +49,7 @@ public class MapsManager {
      * @return An unmodifiable list of all the maps images.
      */
     public static List<MapImage> getMapsImages() {
-        return Collections.unmodifiableList(MAP_IMAGES);
+        return Collections.unmodifiableList(mapImages);
     }
 
     /**
@@ -76,7 +76,7 @@ public class MapsManager {
 
         try {
             List<MapImage> allMapImages = List.of(gson.fromJson(new FileReader(file), MapImage[].class));
-            MAP_IMAGES.addAll(allMapImages);
+            mapImages.addAll(allMapImages);
         } catch (Exception e) {
             Mapify.LOGGER.error("Failed to deserialize maps images", e);
         }
@@ -100,7 +100,7 @@ public class MapsManager {
     public static void serialize(File file) {
         Gson gson = new Gson();
 
-        String json = gson.toJson(MAP_IMAGES);
+        String json = gson.toJson(mapImages);
 
         Mapify.LOGGER.info("Serializing maps images to file: " + file.getAbsolutePath());
 
