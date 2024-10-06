@@ -7,6 +7,9 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * The main class of the mapify mod.
+ */
 public class Mapify implements ModInitializer {
     public static final String MOD_ID = "mapify";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
@@ -24,6 +27,9 @@ public class Mapify implements ModInitializer {
         });
     }
 
+    /**
+     * Called when the server is stopping.
+     */
     public void onDisable() {
         MapsManager.serialize("maps.json");
     }

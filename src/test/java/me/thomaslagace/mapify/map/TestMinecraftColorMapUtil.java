@@ -1,9 +1,12 @@
 package me.thomaslagace.mapify.map;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.junit.jupiter.api.Test;
+
+/**
+ * Tests the MinecraftColorMapUtil class.
+ */
 public class TestMinecraftColorMapUtil {
     @Test
     public void testColorMap() {

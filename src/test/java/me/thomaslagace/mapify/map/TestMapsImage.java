@@ -7,6 +7,9 @@ import java.net.URL;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests the MapsImage class.
+ */
 public class TestMapsImage {
     @Test
     public void testMapsImage() throws Exception {

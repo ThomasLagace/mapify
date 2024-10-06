@@ -1,11 +1,13 @@
 package me.thomaslagace.mapify.map;
 
-import net.minecraft.block.MapColor;
-
-import java.awt.*;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.block.MapColor;
 
+/**
+ * Utility class for Minecraft color map related operations.
+ */
 public class MinecraftColorMapUtil {
     private static final List<Color> allColors = new ArrayList<>();
 
@@ -73,6 +75,14 @@ public class MinecraftColorMapUtil {
         allColors.add(new Color(127, 167, 150));
     }
 
+    /**
+     * Gets the closest render Minecraft color to the given RGB color.
+     *
+     * @param r The red component of the color.
+     * @param g The green component of the color.
+     * @param b The blue component of the color.
+     * @return The closest render Minecraft color.
+     */
     public static byte getClosestRenderColor(int r, int g, int b) {
         byte closestColor = 0;
         double closestDistance = Double.MAX_VALUE;

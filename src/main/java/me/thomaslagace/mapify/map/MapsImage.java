@@ -1,14 +1,11 @@
 package me.thomaslagace.mapify.map;
 
-import com.google.gson.*;
-
-import java.lang.reflect.Type;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.UUID;
 
+/**
+ * Represents an image that can be displayed on maps in Minecraft.
+ */
 public class MapsImage {
     private final UUID creatorId;
     private final String name;
@@ -17,7 +14,21 @@ public class MapsImage {
     private final int height;
     private final int[] minecraftMapIds;
 
-    public MapsImage(UUID creatorId, String name, URL url, int width, int height, int[] minecraftMapIds) throws IllegalArgumentException {
+    /**
+     * Creates a new MapsImage.
+     *
+     * @param creatorId The UUID of the creator of the image.
+     * @param name The name of the image.
+     * @param url The URL of the image.
+     * @param width The width of the image.
+     * @param height The height of the image.
+     * @param minecraftMapIds The ids of the Minecraft maps that the image is displayed on.
+     * @throws IllegalArgumentException If the width or height is less than or equal to 0
+     * @throws IllegalArgumentException If the length of the ids array is not equal to width * height.
+     */
+    public MapsImage(UUID creatorId, String name, URL url, int width, int height, int[] minecraftMapIds)
+        throws IllegalArgumentException {
+
         if (width <= 0 || height <= 0) {
             throw new IllegalArgumentException("Width and height must be greater than 0");
         }
