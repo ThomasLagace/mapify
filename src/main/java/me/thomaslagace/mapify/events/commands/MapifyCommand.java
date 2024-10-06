@@ -8,7 +8,9 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import me.thomaslagace.mapify.map.MapsImage;
+import java.util.UUID;
+
+import me.thomaslagace.mapify.map.MapImage;
 import me.thomaslagace.mapify.map.MapsManager;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.CommandRegistryAccess;
@@ -80,10 +82,12 @@ public class MapifyCommand {
             return 0;
         }
 
-        MapsManager.add(new MapsImage(source.getPlayer().getUuid(),
-                StringArgumentType.getString(context, nameArgumentString),
-                url,
-                1, 1, new int[]{0}));
+        source.sendMessage(Text.literal("Creating map..."));
+
+        UUID playerId = source.getPlayer().getUuid();
+        String name = StringArgumentType.getString(context, nameArgumentString);
+
+        MapsManager.add(new MapImage(playerId, name, url, 1, 1, new int[]{0}));
         return Command.SINGLE_SUCCESS;
     }
 

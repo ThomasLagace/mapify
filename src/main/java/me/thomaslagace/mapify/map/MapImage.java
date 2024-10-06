@@ -6,7 +6,7 @@ import java.util.UUID;
 /**
  * Represents an image that can be displayed on maps in Minecraft.
  */
-public class MapsImage {
+public class MapImage {
     private final UUID creatorId;
     private final String name;
     private final URL url;
@@ -26,7 +26,7 @@ public class MapsImage {
      * @throws IllegalArgumentException If the width or height is less than or equal to 0
      * @throws IllegalArgumentException If the length of the ids array is not equal to width * height.
      */
-    public MapsImage(UUID creatorId, String name, URL url, int width, int height, int[] minecraftMapIds)
+    public MapImage(UUID creatorId, String name, URL url, int width, int height, int[] minecraftMapIds)
         throws IllegalArgumentException {
 
         if (width <= 0 || height <= 0) {

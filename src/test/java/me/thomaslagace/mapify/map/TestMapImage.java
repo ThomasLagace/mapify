@@ -10,20 +10,20 @@ import org.junit.jupiter.api.Test;
 /**
  * Tests the MapsImage class.
  */
-public class TestMapsImage {
+public class TestMapImage {
     @Test
     public void testMapsImage() throws Exception {
         int[] minecraftMapIds = new int[1];
         UUID playerId = UUID.randomUUID();
         URL url = new URI("https://google.com").toURL();
 
-        MapsImage mapsImage = new MapsImage(playerId, "SomeName", url, 1, 1, minecraftMapIds);
+        MapImage mapImage = new MapImage(playerId, "SomeName", url, 1, 1, minecraftMapIds);
 
-        assertEquals(playerId, mapsImage.getCreatorId());
-        assertEquals("SomeName", mapsImage.getName());
-        assertEquals(url, mapsImage.getUrl());
-        assertEquals(1, mapsImage.getWidth());
-        assertEquals(1, mapsImage.getHeight());
-        assertEquals(minecraftMapIds, mapsImage.getMinecraftMapIds());
+        assertEquals(playerId, mapImage.getCreatorId());
+        assertEquals("SomeName", mapImage.getName());
+        assertEquals(url, mapImage.getUrl());
+        assertEquals(1, mapImage.getWidth());
+        assertEquals(1, mapImage.getHeight());
+        assertEquals(minecraftMapIds, mapImage.getMinecraftMapIds());
     }
 }
