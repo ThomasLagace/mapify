@@ -1,10 +1,10 @@
 package me.thomaslagace.mapify.map;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.URL;
 import java.util.UUID;
+import javax.imageio.ImageIO;
 
 /**
  * Represents an image that can be displayed on maps in Minecraft.
@@ -72,6 +72,19 @@ public class MapImage {
 
     public int[] getMinecraftMapIds() {
         return minecraftMapIds;
+    }
+
+    /**
+     * Fetches the image from the URL.
+     *
+     * @return The image.
+     */
+    public BufferedImage fetchImage() {
+        try {
+            return ImageIO.read(url);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /**
