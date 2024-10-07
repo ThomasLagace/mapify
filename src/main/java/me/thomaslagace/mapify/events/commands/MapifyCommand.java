@@ -120,6 +120,9 @@ public class MapifyCommand {
             return 0;
         }
         source.sendMessage(Text.literal("Map created! The name of the map is " + name));
+
+        mapImage.assignMapStateWithImage(source.getWorld());
+
         return Command.SINGLE_SUCCESS;
     }
 
