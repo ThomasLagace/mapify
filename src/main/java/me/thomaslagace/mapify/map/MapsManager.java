@@ -38,6 +38,11 @@ public class MapsManager {
                 && Objects.equals(existingMapImage.getCreatorId(), mapImage.getCreatorId())) {
                 throw new IllegalArgumentException("Image with the same name and creator already exists");
             }
+
+            if (Objects.equals(existingMapImage.getUrl(), mapImage.getUrl())
+                && Objects.equals(existingMapImage.getCreatorId(), mapImage.getCreatorId())) {
+                throw new IllegalArgumentException("Image with the same URL and creator already exists");
+            }
         }
 
         mapImages.add(mapImage);

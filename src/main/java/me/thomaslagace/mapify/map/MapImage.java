@@ -1,8 +1,11 @@
 package me.thomaslagace.mapify.map;
 
+import net.minecraft.component.type.MapIdComponent;
+
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.URL;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
@@ -16,7 +19,7 @@ public class MapImage {
     private final URL url;
     private final int width;
     private final int height;
-    private final int[] minecraftMapIds;
+    private final MapIdComponent[] minecraftMapIds;
 
     private static final String IMAGE_STORAGE_PATH = "mapify/images/";
 
@@ -32,7 +35,7 @@ public class MapImage {
      * @throws IllegalArgumentException If the width or height is less than or equal to 0
      * @throws IllegalArgumentException If the length of the ids array is not equal to width * height.
      */
-    public MapImage(UUID creatorId, String name, URL url, int width, int height, int[] minecraftMapIds)
+    public MapImage(UUID creatorId, String name, URL url, int width, int height, MapIdComponent[] minecraftMapIds)
         throws IllegalArgumentException {
 
         if (width <= 0 || height <= 0) {
@@ -76,8 +79,22 @@ public class MapImage {
         return height;
     }
 
-    public int[] getMinecraftMapIds() {
+    public MapIdComponent[] getMinecraftMapIds() {
         return minecraftMapIds;
+    }
+
+    /**
+     * Fetches the image from the URL and stores it on disk.
+     *
+     * @throws IllegalArgumentException If the URL is invalid.
+     */
+    public void fetchAndStoreImage() {
+        BufferedImage image = fetchImage();
+        if (image == null) {
+            throw new IllegalArgumentException("Invalid URL");
+        }
+
+        storeImage(image);
     }
 
     /**

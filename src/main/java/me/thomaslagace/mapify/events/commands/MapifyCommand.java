@@ -2,6 +2,7 @@ package me.thomaslagace.mapify.events.commands;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import java.net.MalformedURLException;
@@ -13,6 +14,7 @@ import me.thomaslagace.mapify.map.MapImage;
 import me.thomaslagace.mapify.map.MapsManager;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.CommandRegistryAccess;
+import net.minecraft.component.type.MapIdComponent;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -49,13 +51,14 @@ public class MapifyCommand {
         dispatcher.register(CommandManager.literal(commandString)
                 // /mapify create <width> <height> <name> <url>
                 .then(CommandManager.literal(createCommandString)
-                        .then(CommandManager.argument(nameArgumentString, StringArgumentType.string())
-                                .then(CommandManager.argument(urlArgumentString, StringArgumentType.greedyString())
-                                        .executes(MapifyCommand::create))))
-                // /mapify get <name>
+                        .then(CommandManager.argument("width", IntegerArgumentType.integer())
+                                .then(CommandManager.argument("height", IntegerArgumentType.integer())
+                                        .then(CommandManager.argument(nameArgumentString, StringArgumentType.string())
+                                                .then(CommandManager.argument(urlArgumentString, StringArgumentType.greedyString())
+                                                        .executes(MapifyCommand::create))))))
+                // /mapify get
                 .then(CommandManager.literal("get")
-                        .then(CommandManager.argument("name", StringArgumentType.string())
-                                .executes(MapifyCommand::get))));
+                        .executes(MapifyCommand::get)));
     }
 
     /**
@@ -84,8 +87,37 @@ public class MapifyCommand {
 
         UUID playerId = source.getPlayer().getUuid();
         String name = StringArgumentType.getString(context, nameArgumentString);
+        int width = IntegerArgumentType.getInteger(context, "width");
+        int height = IntegerArgumentType.getInteger(context, "height");
 
-        MapsManager.add(new MapImage(playerId, name, url, 1, 1, new int[]{0}));
+        MapIdComponent[] minecraftMapIds = new MapIdComponent[width * height];
+
+        for (int i = 0; i < minecraftMapIds.length; i++) {
+            minecraftMapIds[i] = source.getWorld().increaseAndGetMapId();
+        }
+
+        MapImage mapImage;
+        try {
+            mapImage = new MapImage(playerId, name, url, width, height, minecraftMapIds);
+        } catch (IllegalArgumentException e) {
+            source.sendError(Text.literal(e.getMessage()));
+            return 0;
+        }
+
+        try {
+            mapImage.fetchAndStoreImage();
+        } catch (Exception e) {
+            source.sendError(Text.literal("Failed to fetch and store image"));
+            return 0;
+        }
+
+        try {
+            MapsManager.add(mapImage);
+        } catch (IllegalArgumentException e) {
+            source.sendError(Text.literal(e.getMessage()));
+            return 0;
+        }
+        source.sendMessage(Text.literal("Map created! The name of the map is " + name));
         return Command.SINGLE_SUCCESS;
     }
 

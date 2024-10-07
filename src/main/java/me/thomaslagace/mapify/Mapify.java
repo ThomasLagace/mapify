@@ -18,7 +18,7 @@ public class Mapify implements ModInitializer {
     public void onInitialize() {
         LOGGER.info("Hello Fabric world!");
 
-        MapsManager.initialize("maps.json");
+        MapsManager.initialize("./mapify/maps.json");
 
         MapifyCommand.register();
 
@@ -31,6 +31,6 @@ public class Mapify implements ModInitializer {
      * Called when the server is stopping.
      */
     public void onDisable() {
-        MapsManager.serialize("maps.json");
+        MapsManager.serialize("./mapify/maps.json");
     }
 }
