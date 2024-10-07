@@ -1,6 +1,7 @@
 package me.thomaslagace.mapify.map;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -8,8 +9,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-
-import com.google.gson.GsonBuilder;
 import me.thomaslagace.mapify.Mapify;
 
 /**
@@ -17,6 +16,14 @@ import me.thomaslagace.mapify.Mapify;
  */
 public class MapsManager {
     private static final List<MapImage> mapImages = new ArrayList<>();
+
+    private static class MapsManagerData {
+        public List<MapImage> mapImages;
+
+        public MapsManagerData(List<MapImage> mapImages) {
+            this.mapImages = mapImages;
+        }
+    }
 
     /**
      * Initializes the MapsManager by deserializing the maps images from a file.
@@ -37,11 +44,6 @@ public class MapsManager {
             if (Objects.equals(existingMapImage.getName(), mapImage.getName())
                 && Objects.equals(existingMapImage.getCreatorId(), mapImage.getCreatorId())) {
                 throw new IllegalArgumentException("Image with the same name and creator already exists");
-            }
-
-            if (Objects.equals(existingMapImage.getUrl(), mapImage.getUrl())
-                && Objects.equals(existingMapImage.getCreatorId(), mapImage.getCreatorId())) {
-                throw new IllegalArgumentException("Image with the same URL and creator already exists");
             }
         }
 
@@ -90,8 +92,10 @@ public class MapsManager {
         Gson gson = new Gson();
 
         try {
-            List<MapImage> allMapImages = List.of(gson.fromJson(new FileReader(file), MapImage[].class));
-            mapImages.addAll(allMapImages);
+            MapsManagerData mapsManagerData = gson.fromJson(new FileReader(file), MapsManagerData.class);
+            if (mapsManagerData != null) {
+                mapImages.addAll(mapsManagerData.mapImages);
+            }
         } catch (Exception e) {
             Mapify.LOGGER.error("Failed to deserialize maps images", e);
         }
@@ -115,7 +119,7 @@ public class MapsManager {
     public static void serialize(File file) {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-        String json = gson.toJson(mapImages);
+        String json = gson.toJson(new MapsManagerData(mapImages));
 
         Mapify.LOGGER.info("Serializing maps images to file: " + file.getAbsolutePath());
 
