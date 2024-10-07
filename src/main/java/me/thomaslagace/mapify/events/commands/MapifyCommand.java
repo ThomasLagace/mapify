@@ -90,10 +90,12 @@ public class MapifyCommand {
         int width = IntegerArgumentType.getInteger(context, "width");
         int height = IntegerArgumentType.getInteger(context, "height");
 
-        MapIdComponent[] minecraftMapIds = new MapIdComponent[width * height];
+        MapIdComponent[][] minecraftMapIds = new MapIdComponent[width][height];
 
         for (int i = 0; i < minecraftMapIds.length; i++) {
-            minecraftMapIds[i] = source.getWorld().increaseAndGetMapId();
+            for (int j = 0; j < minecraftMapIds[i].length; j++) {
+                minecraftMapIds[i][j] = source.getWorld().increaseAndGetMapId();
+            }
         }
 
         MapImage mapImage;

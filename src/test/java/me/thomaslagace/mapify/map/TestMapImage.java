@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.net.URI;
 import java.net.URL;
 import java.util.UUID;
+import net.minecraft.component.type.MapIdComponent;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -13,7 +14,7 @@ import org.junit.jupiter.api.Test;
 public class TestMapImage {
     @Test
     public void testMapsImage() throws Exception {
-        int[] minecraftMapIds = new int[1];
+        MapIdComponent[][] minecraftMapIds = new MapIdComponent[1][1];
         UUID playerId = UUID.randomUUID();
         URL url = new URI("https://google.com").toURL();
 
