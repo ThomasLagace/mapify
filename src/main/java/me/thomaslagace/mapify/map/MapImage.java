@@ -1,6 +1,8 @@
 package me.thomaslagace.mapify.map;
 
 import net.minecraft.component.type.MapIdComponent;
+import net.minecraft.item.map.MapState;
+import net.minecraft.world.World;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -19,7 +21,7 @@ public class MapImage {
     private final URL url;
     private final int width;
     private final int height;
-    private final MapIdComponent[] minecraftMapIds;
+    private final MapIdComponent[][] minecraftMapIds;
 
     private static final String IMAGE_STORAGE_PATH = "mapify/images/";
 
@@ -35,14 +37,15 @@ public class MapImage {
      * @throws IllegalArgumentException If the width or height is less than or equal to 0
      * @throws IllegalArgumentException If the length of the ids array is not equal to width * height.
      */
-    public MapImage(UUID creatorId, String name, URL url, int width, int height, MapIdComponent[] minecraftMapIds)
+    public MapImage(UUID creatorId, String name, URL url, int width, int height, MapIdComponent[][] minecraftMapIds)
         throws IllegalArgumentException {
 
         if (width <= 0 || height <= 0) {
             throw new IllegalArgumentException("Width and height must be greater than 0");
         }
 
-        if (minecraftMapIds.length != width * height) {
+        if (minecraftMapIds.length != width
+            || minecraftMapIds[0].length != height) {
             throw new IllegalArgumentException("Ids array must have a length equal to width * height");
         }
 
@@ -79,7 +82,7 @@ public class MapImage {
         return height;
     }
 
-    public MapIdComponent[] getMinecraftMapIds() {
+    public MapIdComponent[][] getMinecraftMapIds() {
         return minecraftMapIds;
     }
 
@@ -159,6 +162,39 @@ public class MapImage {
             return ImageIO.read(file);
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    /**
+     * Assigns the map state of the maps in the world with the colors of the image.
+     *
+     * @param world The world to assign the map states to.
+     */
+    public void assignMapStateWithImage(World world) {
+        BufferedImage image = loadImage();
+        if (image == null) {
+            return;
+        }
+
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                MapIdComponent mapId = minecraftMapIds[i][j];
+                MapState mapState = MapState.of((byte) 0, true, world.getRegistryKey());
+
+                for (int x = 0; x < 128; x++) {
+                    for (int y = 0; y < 128; y++) {
+                        int color = image.getRGB(i * 128 + x, j * 128 + y);
+
+                        int red = (color >> 16) & 0xFF;
+                        int green = (color >> 8) & 0xFF;
+                        int blue = color & 0xFF;
+
+                        mapState.setColor(x, y, MinecraftColorMapUtil.getClosestRenderColor(red, green, blue));
+                    }
+                }
+
+                world.putMapState(mapId, mapState);
+            }
         }
     }
 }
