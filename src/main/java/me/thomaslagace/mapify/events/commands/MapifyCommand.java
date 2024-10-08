@@ -15,8 +15,12 @@ import me.thomaslagace.mapify.map.MapImage;
 import me.thomaslagace.mapify.map.MapsManager;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.CommandRegistryAccess;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.MapIdComponent;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -116,7 +120,7 @@ public class MapifyCommand {
 
         MapImage mapImage;
         try {
-            mapImage = new MapImage(playerId, name, url, width, height, minecraftMapIds);
+            mapImage = new MapImage(MapsManager.getNextId(), playerId, name, url, width, height, minecraftMapIds);
         } catch (IllegalArgumentException e) {
             source.sendError(Text.literal(e.getMessage()));
             return 0;
@@ -174,11 +178,28 @@ public class MapifyCommand {
             return 0;
         }
 
-        ItemStack[] itemStacks = mapImage.getMapsAsItemStacks();
+        // ItemStack[] itemStacks = mapImage.getMapsAsItemStacks();
 
-        for (ItemStack itemStack : itemStacks) {
-            player.getInventory().insertStack(itemStack);
-        }
+        // for (ItemStack itemStack : itemStacks) {
+        //     player.getInventory().insertStack(itemStack);
+        // }
+
+        ItemStack paper = new ItemStack(Items.PAPER, 1);
+        Text paperName = Text.of(String.format("%s %s x %s", mapImage.getName(), mapImage.getWidth(), mapImage.getHeight()));
+        paper.set(DataComponentTypes.ITEM_NAME, paperName);
+
+        NbtCompound nbtCompound = new NbtCompound();
+        nbtCompound.putBoolean("mapify", true);
+        nbtCompound.putInt("id", mapImage.getId());
+        nbtCompound.putUuid("creatorId", mapImage.getCreatorId());
+        nbtCompound.putString("name", mapImage.getName());
+        nbtCompound.putInt("width", mapImage.getWidth());
+        nbtCompound.putInt("height", mapImage.getHeight());
+
+        NbtComponent nbt = NbtComponent.of(nbtCompound);
+        paper.set(DataComponentTypes.CUSTOM_DATA, nbt);
+
+        player.getInventory().insertStack(paper);
 
         return Command.SINGLE_SUCCESS;
     }

@@ -16,14 +16,17 @@ import net.minecraft.component.type.MapIdComponent;
  * Manages all the maps images.
  */
 public class MapsManager {
+    private static int currentId;
     private static final List<MapImage> mapImages = new ArrayList<>();
     private static final List<MapIdComponent> unusedMapIds = new ArrayList<>();
 
     private static class MapsManagerData {
+        public int currentId;
         public List<MapImage> mapImages;
         public List<MapIdComponent> unusedMapIds;
 
-        public MapsManagerData(List<MapImage> mapImages, List<MapIdComponent> unusedMapIds) {
+        public MapsManagerData(int currentId, List<MapImage> mapImages, List<MapIdComponent> unusedMapIds) {
+            this.currentId = currentId;
             this.mapImages = mapImages;
             this.unusedMapIds = unusedMapIds;
         }
@@ -36,6 +39,15 @@ public class MapsManager {
      */
     public static void initialize(String filePath) {
         deserialize(filePath);
+    }
+
+    /**
+     * Gets the next available map id.
+     *
+     * @return The next available map id.
+     */
+    public static int getNextId() {
+        return currentId++;
     }
 
     /**
@@ -102,6 +114,7 @@ public class MapsManager {
         try {
             MapsManagerData mapsManagerData = gson.fromJson(new FileReader(file), MapsManagerData.class);
             if (mapsManagerData != null) {
+                currentId = mapsManagerData.currentId;
                 mapImages.addAll(mapsManagerData.mapImages);
                 unusedMapIds.addAll(mapsManagerData.unusedMapIds);
             }
@@ -128,7 +141,7 @@ public class MapsManager {
     public static void serialize(File file) {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-        String json = gson.toJson(new MapsManagerData(mapImages, unusedMapIds));
+        String json = gson.toJson(new MapsManagerData(currentId, mapImages, unusedMapIds));
 
         Mapify.LOGGER.info("Serializing maps images to file: " + file.getAbsolutePath());
 

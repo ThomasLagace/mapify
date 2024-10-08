@@ -18,6 +18,7 @@ import javax.imageio.ImageIO;
  * Represents an image that can be displayed on maps in Minecraft.
  */
 public class MapImage {
+    private final int id;
     private final UUID creatorId;
     private final String name;
     private final URL url;
@@ -39,7 +40,7 @@ public class MapImage {
      * @throws IllegalArgumentException If the width or height is less than or equal to 0
      * @throws IllegalArgumentException If the length of the ids array is not equal to width * height.
      */
-    public MapImage(UUID creatorId, String name, URL url, int width, int height, MapIdComponent[][] minecraftMapIds)
+    public MapImage(int id, UUID creatorId, String name, URL url, int width, int height, MapIdComponent[][] minecraftMapIds)
         throws IllegalArgumentException {
 
         if (width <= 0 || height <= 0) {
@@ -56,12 +57,17 @@ public class MapImage {
             throw new IllegalArgumentException("Name must not contain special characters");
         }
 
+        this.id = id;
         this.creatorId = creatorId;
         this.name = name;
         this.url = url;
         this.width = width;
         this.height = height;
         this.minecraftMapIds = minecraftMapIds;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public UUID getCreatorId() {

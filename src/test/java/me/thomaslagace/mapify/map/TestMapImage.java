@@ -18,8 +18,9 @@ public class TestMapImage {
         UUID playerId = UUID.randomUUID();
         URL url = new URI("https://google.com").toURL();
 
-        MapImage mapImage = new MapImage(playerId, "SomeName", url, 1, 1, minecraftMapIds);
+        MapImage mapImage = new MapImage(1, playerId, "SomeName", url, 1, 1, minecraftMapIds);
 
+        assertEquals(1, mapImage.getId());
         assertEquals(playerId, mapImage.getCreatorId());
         assertEquals("SomeName", mapImage.getName());
         assertEquals(url, mapImage.getUrl());
