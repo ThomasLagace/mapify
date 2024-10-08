@@ -10,18 +10,22 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import me.thomaslagace.mapify.Mapify;
+import net.minecraft.component.type.MapIdComponent;
 
 /**
  * Manages all the maps images.
  */
 public class MapsManager {
     private static final List<MapImage> mapImages = new ArrayList<>();
+    private static final List<MapIdComponent> unusedMapIds = new ArrayList<>();
 
     private static class MapsManagerData {
         public List<MapImage> mapImages;
+        public List<MapIdComponent> unusedMapIds;
 
-        public MapsManagerData(List<MapImage> mapImages) {
+        public MapsManagerData(List<MapImage> mapImages, List<MapIdComponent> unusedMapIds) {
             this.mapImages = mapImages;
+            this.unusedMapIds = unusedMapIds;
         }
     }
 
@@ -57,6 +61,10 @@ public class MapsManager {
      * @return True if the maps image was removed, false otherwise.
      */
     public static boolean remove(MapImage mapImage) {
+        for (MapIdComponent[] idComponents : mapImage.getMinecraftMapIds()) {
+            unusedMapIds.addAll(List.of(idComponents));
+        }
+
         return mapImages.remove(mapImage);
     }
 
@@ -95,6 +103,7 @@ public class MapsManager {
             MapsManagerData mapsManagerData = gson.fromJson(new FileReader(file), MapsManagerData.class);
             if (mapsManagerData != null) {
                 mapImages.addAll(mapsManagerData.mapImages);
+                unusedMapIds.addAll(mapsManagerData.unusedMapIds);
             }
         } catch (Exception e) {
             Mapify.LOGGER.error("Failed to deserialize maps images", e);
@@ -119,7 +128,7 @@ public class MapsManager {
     public static void serialize(File file) {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-        String json = gson.toJson(new MapsManagerData(mapImages));
+        String json = gson.toJson(new MapsManagerData(mapImages, unusedMapIds));
 
         Mapify.LOGGER.info("Serializing maps images to file: " + file.getAbsolutePath());
 
