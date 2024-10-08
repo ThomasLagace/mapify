@@ -9,12 +9,14 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.List;
 import java.util.UUID;
 import me.thomaslagace.mapify.map.MapImage;
 import me.thomaslagace.mapify.map.MapsManager;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.component.type.MapIdComponent;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -56,9 +58,23 @@ public class MapifyCommand {
                                         .then(CommandManager.argument(nameArgumentString, StringArgumentType.string())
                                                 .then(CommandManager.argument(urlArgumentString, StringArgumentType.greedyString())
                                                         .executes(MapifyCommand::create))))))
-                // /mapify get
+                // /mapify get <name>
                 .then(CommandManager.literal("get")
-                        .executes(MapifyCommand::get)));
+                        .then(CommandManager.argument("name", StringArgumentType.string())
+                                .suggests((context, builder) -> {
+                                    ServerPlayerEntity player = context.getSource().getPlayer();
+                                    if (player == null) {
+                                        return builder.buildFuture();
+                                    }
+
+                                    MapsManager.getMapsImages().forEach(map -> {
+                                        if (map.getCreatorId() == player.getUuid()) {
+                                            builder.suggest(map.getName());
+                                        }
+                                    });
+                                    return builder.buildFuture();
+                                })
+                                .executes(MapifyCommand::get))));
     }
 
     /**
@@ -133,6 +149,37 @@ public class MapifyCommand {
      * @return The result of the command.
      */
     private static int get(CommandContext<ServerCommandSource> context) {
+        ServerCommandSource source = context.getSource();
+        if (!(source.getEntity() instanceof ServerPlayerEntity)) {
+            source.sendError(Text.literal("You must be a player to run this command"));
+            return 0;
+        }
+
+        ServerPlayerEntity player = (ServerPlayerEntity) source.getEntity();
+
+        String name = StringArgumentType.getString(context, "name");
+
+        List<MapImage> allMapsImage = MapsManager.getMapsImages();
+
+        MapImage mapImage = null;
+        for (MapImage map : allMapsImage) {
+            if (map.getName().equals(name) && map.getCreatorId().equals(player.getUuid())) {
+                mapImage = map;
+                break;
+            }
+        }
+
+        if (mapImage == null) {
+            source.sendError(Text.literal("Map not found"));
+            return 0;
+        }
+
+        ItemStack[] itemStacks = mapImage.getMapsAsItemStacks();
+
+        for (ItemStack itemStack : itemStacks) {
+            player.getInventory().insertStack(itemStack);
+        }
+
         return Command.SINGLE_SUCCESS;
     }
 }
