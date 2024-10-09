@@ -9,13 +9,16 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import me.thomaslagace.mapify.map.MapImage;
 import me.thomaslagace.mapify.map.MapsManager;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.LoreComponent;
 import net.minecraft.component.type.MapIdComponent;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ItemStack;
@@ -185,8 +188,17 @@ public class MapifyCommand {
         // }
 
         ItemStack paper = new ItemStack(Items.PAPER, 1);
+
         Text paperName = Text.of(String.format("%s %s x %s", mapImage.getName(), mapImage.getWidth(), mapImage.getHeight()));
         paper.set(DataComponentTypes.ITEM_NAME, paperName);
+
+        String creatorName = Objects.requireNonNull(source.getServer().getPlayerManager().getPlayer(mapImage.getCreatorId())).getName().getString();
+
+        LoreComponent loreComponent = new LoreComponent(new ArrayList<>());
+        loreComponent.lines().add(Text.of(mapImage.getName()));
+        loreComponent.lines().add(Text.of(mapImage.getUrl().toString()));
+        loreComponent.lines().add(Text.of("Created by " + creatorName));
+        paper.set(DataComponentTypes.LORE, loreComponent);
 
         NbtCompound nbtCompound = new NbtCompound();
         nbtCompound.putBoolean("mapify", true);
