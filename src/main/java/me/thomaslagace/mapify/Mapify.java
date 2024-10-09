@@ -1,6 +1,7 @@
 package me.thomaslagace.mapify;
 
 import me.thomaslagace.mapify.events.commands.MapifyCommand;
+import me.thomaslagace.mapify.events.rightclick.ItemFrameRightClickHandler;
 import me.thomaslagace.mapify.map.MapsManager;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -21,6 +22,7 @@ public class Mapify implements ModInitializer {
         MapsManager.initialize("./mapify/maps.json");
 
         MapifyCommand.register();
+        ItemFrameRightClickHandler.register();
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             onDisable();

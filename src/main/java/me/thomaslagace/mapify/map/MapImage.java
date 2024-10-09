@@ -211,8 +211,8 @@ public class MapImage {
      *
      * @return An array of itemStacks that represent the maps.
      */
-    public ItemStack[] getMapsAsItemStacks() {
-        ItemStack[] itemStacks = new ItemStack[width * height];
+    public ItemStack[][] getMapsAsItemStacks() {
+        ItemStack[][] itemStacks = new ItemStack[width][height];
 
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
@@ -221,7 +221,7 @@ public class MapImage {
                 ItemStack itemStack = new ItemStack(net.minecraft.item.Items.FILLED_MAP);
                 itemStack.set(DataComponentTypes.MAP_ID, mapId);
 
-                itemStacks[i * height + j] = itemStack;
+                itemStacks[i][j] = itemStack;
             }
         }
 

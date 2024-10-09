@@ -90,6 +90,22 @@ public class MapsManager {
     }
 
     /**
+     * Gets an MapImage by its id.
+     *
+     * @param id The id of the MapImage to get.
+     * @return The MapImage with the given id, or null if no MapImage with the given id exists.
+     */
+    public static MapImage getMapImageById(int id) {
+        for (MapImage mapImage : mapImages) {
+            if (mapImage.getId() == id) {
+                return mapImage;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Deserializes the maps images from a file.
      *
      * @param filePath The path to the file to deserialize the maps images from.
