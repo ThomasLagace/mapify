@@ -15,8 +15,8 @@ public class Image {
     private final UUID creatorId;
     private String name;
     private final URL url;
-    private int maxWidth;
-    private int maxHeight;
+    private final int maxWidth;
+    private final int maxHeight;
 
     private static final String IMAGE_STORAGE_PATH = "mapify/images/";
 
@@ -27,12 +27,31 @@ public class Image {
      * @param creatorId The UUID of the creator of the image.
      * @param name The name of the image.
      * @param url The URL of the image.
+     * @param maxWidth The maximum width of the image.
+     * @param maxHeight The maximum height of the image.
      */
-    public Image(int id, UUID creatorId, String name, URL url) {
+    public Image(int id, UUID creatorId, String name, URL url, int maxWidth, int maxHeight) {
+        if (!isValidName(name)) {
+            throw new IllegalArgumentException("Name must not contain special characters");
+        }
         this.id = id;
         this.creatorId = creatorId;
         this.name = name;
         this.url = url;
+        this.maxWidth = maxWidth;
+        this.maxHeight = maxHeight;
+    }
+
+    /**
+     * Creates a new Image.
+     *
+     * @param id The id of the image.
+     * @param creatorId The UUID of the creator of the image.
+     * @param name The name of the image.
+     * @param url The URL of the image.
+     */
+    public Image(int id, UUID creatorId, String name, URL url) {
+        this(id, creatorId, name, url, Integer.MAX_VALUE, Integer.MAX_VALUE);
     }
 
     public int getId() {
@@ -55,6 +74,24 @@ public class Image {
         this.name = name;
     }
 
+    public int getMaxWidth() {
+        return maxWidth;
+    }
+
+    public int getMaxHeight() {
+        return maxHeight;
+    }
+
+    /**
+     * Returns if the name is valid.
+     *
+     * @param name The name to check.
+     * @return If the name is valid.
+     */
+    public static boolean isValidName(String name) {
+        return !name.matches(".*[*?!@#$%^&(){}\\[\\]:;<>,./~`_+=|\\-].*");
+    }
+
     /**
      * Serialize the image.
      */
@@ -65,11 +102,15 @@ public class Image {
     /**
      * Fetches the image from the URL.
      *
-     * @return The image.
+     * @return The image. Resized if it is larger than the maximum width and height.
      * @throws IOException If the image could not be fetched.
      */
     public BufferedImage fetchImage() throws IOException {
-        return ImageIO.read(url);
+        BufferedImage image = ImageIO.read(url);
+        if (image.getHeight() > maxHeight || image.getWidth() > maxWidth) {
+            image = ImageUtil.resizeKeepRatio(image, maxWidth, maxHeight);
+        }
+        return image;
     }
 
     /**
