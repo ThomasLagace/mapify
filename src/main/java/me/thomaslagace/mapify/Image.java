@@ -93,7 +93,7 @@ public class Image {
             return deserialize();
         } catch (IOException e) {
             BufferedImage image = fetchImage();
-            serialize(image);
+            storeImage(image);
             return image;
         }
     }
@@ -103,13 +103,6 @@ public class Image {
      */
     public void serialize() throws IOException {
         storeImage(fetchImage());
-    }
-
-    /**
-     * Serialize an image.
-     */
-    private void serialize(BufferedImage image) throws IOException {
-        storeImage(image);
     }
 
     /**
