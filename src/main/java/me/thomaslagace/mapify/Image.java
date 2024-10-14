@@ -83,13 +83,19 @@ public class Image {
     }
 
     /**
-     * Returns if the name is valid.
+     * Returns the image. If the image is not stored on disk, it will be fetched from the URL and stored.
      *
-     * @param name The name to check.
-     * @return If the name is valid.
+     * @return The image.
+     * @throws IOException If the image could not be fetched or serialized.
      */
-    public static boolean isValidName(String name) {
-        return !name.matches(".*[*?!@#$%^&(){}\\[\\]:;<>,./~`_+=|\\-].*");
+    public BufferedImage getImage() throws IOException {
+        try {
+            return deserialize();
+        } catch (IOException e) {
+            BufferedImage image = fetchImage();
+            serialize(image);
+            return image;
+        }
     }
 
     /**
@@ -97,6 +103,23 @@ public class Image {
      */
     public void serialize() throws IOException {
         storeImage(fetchImage());
+    }
+
+    /**
+     * Serialize an image.
+     */
+    private void serialize(BufferedImage image) throws IOException {
+        storeImage(image);
+    }
+
+    /**
+     * Deserialize the image from disk.
+     *
+     * @return The image.
+     */
+    public BufferedImage deserialize() throws IOException {
+        File file = new File(IMAGE_STORAGE_PATH + creatorId.toString() + "/" + name + ".png");
+        return ImageIO.read(file);
     }
 
     /**
@@ -128,5 +151,15 @@ public class Image {
         File file = new File(directory, name + ".png");
 
         ImageIO.write(image, "png", file);
+    }
+
+    /**
+     * Returns if the name is valid.
+     *
+     * @param name The name to check.
+     * @return If the name is valid.
+     */
+    public static boolean isValidName(String name) {
+        return !name.matches(".*[*?!@#$%^&(){}\\[\\]:;<>,./~`_+=|\\-].*");
     }
 }
