@@ -153,6 +153,6 @@ public class Image {
      * @return If the name is valid.
      */
     public static boolean isValidName(String name) {
-        return !name.matches(".*[*?!@#$%^&(){}\\[\\]:;<>,./~`_+=|\\-].*");
+        return !name.matches("[*?!@#$%^&(){}\\[\\]:;<>,./~`_+=|\\-]");
     }
 }
