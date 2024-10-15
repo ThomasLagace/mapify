@@ -13,6 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+
+import me.thomaslagace.mapify.Image;
+import me.thomaslagace.mapify.ImageMinecraft;
+import me.thomaslagace.mapify.Mapify;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.component.DataComponentTypes;
@@ -32,11 +36,6 @@ import net.minecraft.text.Text;
  * Class that handles the /mapify command.
  */
 public class MapifyCommand {
-    private static final String commandString = "mapify";
-    private static final String createCommandString = "create";
-    private static final String nameArgumentString = "name";
-    private static final String urlArgumentString = "url";
-
     /**
      * Registers the /mapify command.
      */
@@ -55,13 +54,13 @@ public class MapifyCommand {
         CommandRegistryAccess registryAccess,
         CommandManager.RegistrationEnvironment environment) {
 
-        dispatcher.register(CommandManager.literal(commandString)
+        dispatcher.register(CommandManager.literal("mapfiy")
                 // /mapify create <width> <height> <name> <url>
-                .then(CommandManager.literal(createCommandString)
+                .then(CommandManager.literal("create")
                         .then(CommandManager.argument("width", IntegerArgumentType.integer())
                                 .then(CommandManager.argument("height", IntegerArgumentType.integer())
-                                        .then(CommandManager.argument(nameArgumentString, StringArgumentType.string())
-                                                .then(CommandManager.argument(urlArgumentString, StringArgumentType.greedyString())
+                                        .then(CommandManager.argument("name", StringArgumentType.string())
+                                                .then(CommandManager.argument("url", StringArgumentType.greedyString())
                                                         .executes(MapifyCommand::create))))))
                 // /mapify get <name>
                 .then(CommandManager.literal("get")
@@ -72,7 +71,7 @@ public class MapifyCommand {
                                         return builder.buildFuture();
                                     }
 
-                                    MapsManager.getMapsImages().forEach(map -> {
+                                    Mapify.imageManager.getImages().forEach(map -> {
                                         if (map.getCreatorId() == player.getUuid()) {
                                             builder.suggest(map.getName());
                                         }
@@ -97,52 +96,28 @@ public class MapifyCommand {
 
         URL url;
         try {
-            URI uri = new URI(StringArgumentType.getString(context, urlArgumentString));
+            URI uri = new URI(StringArgumentType.getString(context, "url"));
             url = uri.toURL();
         } catch (MalformedURLException | URISyntaxException e) {
             source.sendError(Text.literal("Invalid URL"));
             return 0;
         }
 
+
         source.sendMessage(Text.literal("Creating map..."));
 
         UUID playerId = source.getPlayer().getUuid();
-        String name = StringArgumentType.getString(context, nameArgumentString);
+        String name = StringArgumentType.getString(context, "name");
         int width = IntegerArgumentType.getInteger(context, "width");
         int height = IntegerArgumentType.getInteger(context, "height");
 
-        MapIdComponent[][] minecraftMapIds = new MapIdComponent[width][height];
+        Image image = new Image(name, url);
+        ImageMinecraft imageMinecraft = new ImageMinecraft(Mapify.imageManager.getNextId(), playerId,name, image, width, height);
 
-        for (int i = 0; i < minecraftMapIds.length; i++) {
-            for (int j = 0; j < minecraftMapIds[i].length; j++) {
-                minecraftMapIds[i][j] = source.getWorld().increaseAndGetMapId();
-            }
-        }
+        imageMinecraft.reserveMapIds(source.getWorld());
+        imageMinecraft.assignMapStateToWorld(source.getWorld());
 
-        MapImage mapImage;
-        try {
-            mapImage = new MapImage(MapsManager.getNextId(), playerId, name, url, width, height, minecraftMapIds);
-        } catch (IllegalArgumentException e) {
-            source.sendError(Text.literal(e.getMessage()));
-            return 0;
-        }
-
-        try {
-            mapImage.fetchAndStoreImage();
-        } catch (Exception e) {
-            source.sendError(Text.literal("Failed to fetch and store image"));
-            return 0;
-        }
-
-        try {
-            MapsManager.add(mapImage);
-        } catch (IllegalArgumentException e) {
-            source.sendError(Text.literal(e.getMessage()));
-            return 0;
-        }
-        source.sendMessage(Text.literal("Map created! The name of the map is " + name));
-
-        mapImage.assignMapStateWithImage(source.getWorld());
+        Mapify.imageManager.add(imageMinecraft);
 
         return Command.SINGLE_SUCCESS;
     }
@@ -164,11 +139,12 @@ public class MapifyCommand {
 
         String name = StringArgumentType.getString(context, "name");
 
-        List<MapImage> allMapsImage = MapsManager.getMapsImages();
+        List<ImageMinecraft> allMapsImage = Mapify.imageManager.getImages();
 
-        MapImage mapImage = null;
-        for (MapImage map : allMapsImage) {
-            if (map.getName().equals(name) && map.getCreatorId().equals(player.getUuid())) {
+        ImageMinecraft mapImage = null;
+        for (ImageMinecraft map : allMapsImage) {
+            if (map.getName().equals(name)
+                && map.getCreatorId().equals(player.getUuid())) {
                 mapImage = map;
                 break;
             }
@@ -179,12 +155,6 @@ public class MapifyCommand {
             return 0;
         }
 
-        // ItemStack[] itemStacks = mapImage.getMapsAsItemStacks();
-
-        // for (ItemStack itemStack : itemStacks) {
-        //     player.getInventory().insertStack(itemStack);
-        // }
-
         ItemStack paper = new ItemStack(Items.PAPER, 1);
 
         Text paperName = Text.of(String.format("%s %s x %s", mapImage.getName(), mapImage.getWidth(), mapImage.getHeight()));
@@ -194,17 +164,17 @@ public class MapifyCommand {
 
         LoreComponent loreComponent = new LoreComponent(new ArrayList<>());
         loreComponent.lines().add(Text.of(mapImage.getName()));
-        loreComponent.lines().add(Text.of(mapImage.getUrl().toString()));
+        loreComponent.lines().add(Text.of(mapImage.getImage().getUrl().toString()));
         loreComponent.lines().add(Text.of("Created by " + creatorName));
         paper.set(DataComponentTypes.LORE, loreComponent);
 
         NbtCompound nbtCompound = new NbtCompound();
         nbtCompound.putBoolean("mapify", true);
-        nbtCompound.putInt("id", mapImage.getId());
-        nbtCompound.putUuid("creatorId", mapImage.getCreatorId());
-        nbtCompound.putString("name", mapImage.getName());
-        nbtCompound.putInt("width", mapImage.getWidth());
-        nbtCompound.putInt("height", mapImage.getHeight());
+        nbtCompound.putInt("mapify.id", mapImage.getId());
+        nbtCompound.putUuid("mapify.creatorId", mapImage.getCreatorId());
+        nbtCompound.putString("mapify.name", mapImage.getName());
+        nbtCompound.putInt("mapify.width", mapImage.getWidth());
+        nbtCompound.putInt("mapify.height", mapImage.getHeight());
 
         NbtComponent nbt = NbtComponent.of(nbtCompound);
         paper.set(DataComponentTypes.CUSTOM_DATA, nbt);

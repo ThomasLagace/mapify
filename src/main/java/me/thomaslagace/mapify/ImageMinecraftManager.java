@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import net.minecraft.component.type.MapIdComponent;
@@ -16,6 +17,7 @@ import org.slf4j.Logger;
 public class ImageMinecraftManager {
     private static final Logger LOGGER = Mapify.LOGGER;
 
+    private static int nextId = 0;
     private final List<ImageMinecraft> imageMinecrafts;
     private final List<MapIdComponent> unusedMapIds;
 
@@ -28,6 +30,14 @@ public class ImageMinecraftManager {
     public ImageMinecraftManager(List<ImageMinecraft> minecraftImages, List<MapIdComponent> unusedMapIds) {
         this.imageMinecrafts = minecraftImages;
         this.unusedMapIds = unusedMapIds;
+    }
+
+    public int getNextId() {
+        return nextId++;
+    }
+
+    public List<ImageMinecraft> getImages() {
+        return imageMinecrafts;
     }
 
     /**
@@ -65,6 +75,14 @@ public class ImageMinecraftManager {
      */
     public void serialize(String filePath) {
         File file = new File(filePath);
+        File parentDir = file.getParentFile();
+
+        if (parentDir != null && !parentDir.exists()) {
+            if (!parentDir.mkdirs()) {
+                LOGGER.error("Failed to create directories for {}", filePath);
+                return;
+            }
+        }
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String json = gson.toJson(this);
@@ -86,7 +104,7 @@ public class ImageMinecraftManager {
     public static ImageMinecraftManager deserialize(String filePath) {
         File file = new File(filePath);
         if (!file.exists()) {
-            return null;
+            return new ImageMinecraftManager(new ArrayList<>(), new ArrayList<>());
         }
 
         Gson gson = new Gson();
@@ -99,5 +117,6 @@ public class ImageMinecraftManager {
         } catch (Exception e) {
             LOGGER.error("Failed to deserialize ImageMinecraftManager", e);
         }
+        return new ImageMinecraftManager(new ArrayList<>(), new ArrayList<>());
     }
 }

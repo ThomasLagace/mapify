@@ -3,8 +3,10 @@ package me.thomaslagace.mapify;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.UUID;
-
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.MapIdComponent;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.item.map.MapState;
 import net.minecraft.world.World;
 import org.slf4j.Logger;
@@ -13,6 +15,7 @@ import org.slf4j.Logger;
  * Bridge between an image and the Minecraft maps that it is displayed on.
  */
 public class ImageMinecraft {
+    private final int id;
     private final UUID creatorId;
     private final String name;
     private final Image image;
@@ -23,12 +26,14 @@ public class ImageMinecraft {
     /**
      * Creates a new ImageMinecraft.
      *
+     * @param id The id of the image minecraft.
      * @param creatorId The UUID of the creator of the image.
      * @param name The name of the image.
      * @param image The image.
      * @param minecraftMapIds The ids of the Minecraft maps that the image is displayed on.
      */
-    public ImageMinecraft(UUID creatorId, String name, Image image, MapIdComponent[][] minecraftMapIds) {
+    public ImageMinecraft(int id, UUID creatorId, String name, Image image, MapIdComponent[][] minecraftMapIds) {
+        this.id = id;
         this.creatorId = creatorId;
         this.name = name;
         this.image = image;
@@ -38,14 +43,19 @@ public class ImageMinecraft {
     /**
      * Creates a new ImageMinecraft.
      *
+     * @param id The id of the image minecraft.
      * @param creatorId The UUID of the creator of the image.
      * @param name The name of the image.
      * @param image The image.
      * @param width The width of the map.
      * @param height The height of the map.
      */
-    public ImageMinecraft(UUID creatorId, String name, Image image, int width, int height) {
-        this(creatorId, name, image, new MapIdComponent[height][width]);
+    public ImageMinecraft(int id, UUID creatorId, String name, Image image, int width, int height) {
+        this(id, creatorId, name, image, new MapIdComponent[height][width]);
+    }
+
+    public int getId() {
+        return id;
     }
 
     public UUID getCreatorId() {
@@ -122,5 +132,25 @@ public class ImageMinecraft {
                 world.putMapState(mapId, mapState);
             }
         }
+    }
+
+    /**
+     * Returns the map item stacks of the maps.
+     *
+     * @return The map item stacks of the maps.
+     */
+    public ItemStack[][] getMapItemStack() {
+        ItemStack[][] maps = new ItemStack[getHeight()][getWidth()];
+
+        for (int y = 0; y < getHeight(); y++) {
+            for (int x = 0; x < getWidth(); x++) {
+                MapIdComponent mapId = minecraftMapIds[y][x];
+                ItemStack mapItem = new ItemStack(Items.FILLED_MAP, 1);
+                mapItem.set(DataComponentTypes.MAP_ID, mapId);
+                maps[y][x] = mapItem;
+            }
+        }
+
+        return maps;
     }
 }

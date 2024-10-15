@@ -11,7 +11,6 @@ import javax.imageio.ImageIO;
  * Represents an image.
  */
 public class Image {
-    private final UUID creatorId;
     private String name;
     private final URL url;
 
@@ -26,17 +25,12 @@ public class Image {
      * @param name The name of the image.
      * @param url The URL of the image.
      */
-    public Image(UUID creatorId, String name, URL url) {
+    public Image(String name, URL url) {
         if (!isValidName(name)) {
             throw new IllegalArgumentException("Name must not contain special characters");
         }
-        this.creatorId = creatorId;
         this.name = name;
         this.url = url;
-    }
-
-    public UUID getCreatorId() {
-        return creatorId;
     }
 
     public String getName() {

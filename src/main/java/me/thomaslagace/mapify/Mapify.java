@@ -2,7 +2,6 @@ package me.thomaslagace.mapify;
 
 import me.thomaslagace.mapify.events.commands.MapifyCommand;
 import me.thomaslagace.mapify.events.rightclick.ItemFrameRightClickHandler;
-import me.thomaslagace.mapify.map.MapsManager;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import org.slf4j.Logger;
@@ -14,12 +13,11 @@ import org.slf4j.LoggerFactory;
 public class Mapify implements ModInitializer {
     public static final String MOD_ID = "mapify";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    public static final ImageMinecraftManager imageManager = ImageMinecraftManager.deserialize("./mapify/images.json");
 
     @Override
     public void onInitialize() {
         LOGGER.info("Hello Fabric world!");
-
-        MapsManager.initialize("./mapify/maps.json");
 
         MapifyCommand.register();
         ItemFrameRightClickHandler.register();
@@ -33,6 +31,6 @@ public class Mapify implements ModInitializer {
      * Called when the server is stopping.
      */
     public void onDisable() {
-        MapsManager.serialize("./mapify/maps.json");
+        imageManager.serialize("./mapify/images.json");
     }
 }
