@@ -103,7 +103,6 @@ public class MapifyCommand {
             return 0;
         }
 
-
         source.sendMessage(Text.literal("Creating map..."));
 
         UUID playerId = source.getPlayer().getUuid();
@@ -111,7 +110,7 @@ public class MapifyCommand {
         int width = IntegerArgumentType.getInteger(context, "width");
         int height = IntegerArgumentType.getInteger(context, "height");
 
-        Image image = new Image(name, url);
+        Image image = new Image(playerId, name, url);
         ImageMinecraft imageMinecraft = new ImageMinecraft(Mapify.imageManager.getNextId(), playerId,name, image, width, height);
 
         imageMinecraft.reserveMapIds(source.getWorld());

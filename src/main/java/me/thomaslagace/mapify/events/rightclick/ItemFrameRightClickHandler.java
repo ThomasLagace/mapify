@@ -1,7 +1,8 @@
 package me.thomaslagace.mapify.events.rightclick;
 
+import java.util.List;
+import me.thomaslagace.mapify.ImageMinecraft;
 import me.thomaslagace.mapify.Mapify;
-import me.thomaslagace.mapify.map.MapsManager;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
@@ -19,8 +20,6 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class ItemFrameRightClickHandler {
     public static void register() {
@@ -45,52 +44,63 @@ public class ItemFrameRightClickHandler {
             return ActionResult.PASS;
         }
 
-        MapImage mapImage = MapsManager.getMapImageById(usedItemNbtCompound.getInt("id"));
+        ImageMinecraft imageMinecraft = Mapify.imageManager.getMapImageById(usedItemNbtCompound.getInt("mapify.id"));
 
-        if (mapImage == null) {
+        if (imageMinecraft == null) {
             playerEntity.sendMessage(Text.of("Map not found."), true);
-            return ActionResult.PASS;
+            return ActionResult.FAIL;
         }
 
-        int width = usedItemNbtCompound.getInt("width");
-        int height = usedItemNbtCompound.getInt("height");
-
-        ItemFrameEntity[][] itemFrames = new ItemFrameEntity[width][height];
+        int width = usedItemNbtCompound.getInt("mapify.width");
+        int height = usedItemNbtCompound.getInt("mapify.height");
 
         Direction direction = itemFrame.getHorizontalFacing();
         BlockPos itemFramePos = itemFrame.getBlockPos();
 
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < height; j++) {
-                BlockPos checkPos = itemFramePos.offset(direction.rotateYClockwise(), -i).offset(Direction.UP, j);
-                List<ItemFrameEntity> checkFrames = world.getEntitiesByClass(ItemFrameEntity.class, new Box(checkPos), (frameEntity) -> frameEntity.getBlockPos().equals(checkPos));
-                for (ItemFrameEntity checkFrame : checkFrames) {
-                    if (checkFrame.getHorizontalFacing() == direction) {
-                        itemFrames[i][j] = checkFrame;
-                    }
-                }
+        ItemFrameEntity[][] itemFrames = getAdjacentItemFrames(world, itemFramePos, direction, width, height);
 
-                if (itemFrames[i][j] == null) {
-                    playerEntity.sendMessage(Text.of("Not enough item frames to place the map."), true);
-                    return ActionResult.PASS;
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                Mapify.LOGGER.info("y:" + y + " x: " + x + "  " + itemFrames[y][x]);
+            }
+        }
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (itemFrames[y][x] == null) {
+                    playerEntity.sendMessage(Text.of("Item frame not found."), true);
+                    return ActionResult.FAIL;
                 }
             }
         }
 
-        ItemStack[][] mapItems = mapImage.getMapsAsItemStacks();
 
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < height; j++) {
-                Mapify.LOGGER.info("i: " + i + " j: " + j + "  :  " + mapItems[i][j].get(DataComponentTypes.MAP_ID).toString());
-            }
-        }
-
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < height; j++) {
-                itemFrames[i][j].setHeldItemStack(mapItems[i][j]);
+        ItemStack[][] mapItems = imageMinecraft.getMapItemStack();
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                itemFrames[y][x].setHeldItemStack(mapItems[y][x]);
             }
         }
 
         return ActionResult.SUCCESS;
+    }
+
+    private static ItemFrameEntity[][] getAdjacentItemFrames(World world, BlockPos pos, Direction direction, int width, int height) {
+        ItemFrameEntity[][] itemFrames = new ItemFrameEntity[height][width];
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                BlockPos itemFramePos = pos.offset(direction.rotateYClockwise(), -x).offset(Direction.UP, -y);
+                List<ItemFrameEntity> itemFrameEntities = world.getEntitiesByClass(ItemFrameEntity.class, new Box(itemFramePos), (entity) -> entity.getBlockPos().equals(itemFramePos));
+
+                for (ItemFrameEntity itemFrameEntity : itemFrameEntities) {
+                    if (itemFrameEntity.getHorizontalFacing() == direction) {
+                        itemFrames[y][x] = itemFrameEntity;
+                    }
+                }
+            }
+        }
+
+        return itemFrames;
     }
 }

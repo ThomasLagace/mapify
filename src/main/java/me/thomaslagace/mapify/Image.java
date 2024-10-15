@@ -11,12 +11,13 @@ import javax.imageio.ImageIO;
  * Represents an image.
  */
 public class Image {
-    private String name;
-    private final URL url;
-
     private static final int maxWidth = Config.MAX_IMAGE_WIDTH;
     private static final int maxHeight = Config.MAX_IMAGE_HEIGHT;
     private static final String imageStoragePath = Config.IMAGE_STORAGE_PATH;
+
+    private UUID creatorId;
+    private String name;
+    private final URL url;
 
     /**
      * Creates a new Image.
@@ -25,12 +26,17 @@ public class Image {
      * @param name The name of the image.
      * @param url The URL of the image.
      */
-    public Image(String name, URL url) {
+    public Image(UUID creatorId, String name, URL url) {
         if (!isValidName(name)) {
             throw new IllegalArgumentException("Name must not contain special characters");
         }
+        this.creatorId = creatorId;
         this.name = name;
         this.url = url;
+    }
+
+    public UUID getCreatorId() {
+        return creatorId;
     }
 
     public String getName() {

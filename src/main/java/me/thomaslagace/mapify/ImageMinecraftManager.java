@@ -41,6 +41,21 @@ public class ImageMinecraftManager {
     }
 
     /**
+     * Gets an ImageMinecraft by its id.
+     *
+     * @param id The id of the ImageMinecraft to get.
+     * @return The ImageMinecraft with the given id.
+     */
+    public ImageMinecraft getMapImageById(int id) {
+        for (ImageMinecraft image : imageMinecrafts) {
+            if (image.getId() == id) {
+                return image;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Adds an ImageMinecraft to the manager.
      *
      * @param imageMinecraft The ImageMinecraft to add.
