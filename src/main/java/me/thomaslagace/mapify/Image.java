@@ -11,51 +11,28 @@ import javax.imageio.ImageIO;
  * Represents an image.
  */
 public class Image {
-    private final int id;
     private final UUID creatorId;
     private String name;
     private final URL url;
-    private final int maxWidth;
-    private final int maxHeight;
 
-    private static final String IMAGE_STORAGE_PATH = "mapify/images/";
+    private final int maxWidth = Config.MAX_IMAGE_WIDTH;
+    private final int maxHeight = Config.MAX_IMAGE_HEIGHT;
+    private static final String imageStoragePath = Config.IMAGE_STORAGE_PATH;
 
     /**
      * Creates a new Image.
      *
-     * @param id The id of the image.
      * @param creatorId The UUID of the creator of the image.
      * @param name The name of the image.
      * @param url The URL of the image.
-     * @param maxWidth The maximum width of the image.
-     * @param maxHeight The maximum height of the image.
      */
-    public Image(int id, UUID creatorId, String name, URL url, int maxWidth, int maxHeight) {
+    public Image(UUID creatorId, String name, URL url) {
         if (!isValidName(name)) {
             throw new IllegalArgumentException("Name must not contain special characters");
         }
-        this.id = id;
         this.creatorId = creatorId;
         this.name = name;
         this.url = url;
-        this.maxWidth = maxWidth;
-        this.maxHeight = maxHeight;
-    }
-
-    /**
-     * Creates a new Image.
-     *
-     * @param id The id of the image.
-     * @param creatorId The UUID of the creator of the image.
-     * @param name The name of the image.
-     * @param url The URL of the image.
-     */
-    public Image(int id, UUID creatorId, String name, URL url) {
-        this(id, creatorId, name, url, Integer.MAX_VALUE, Integer.MAX_VALUE);
-    }
-
-    public int getId() {
-        return id;
     }
 
     public UUID getCreatorId() {
@@ -111,7 +88,7 @@ public class Image {
      * @return The image.
      */
     public BufferedImage deserialize() throws IOException {
-        File file = new File(IMAGE_STORAGE_PATH + creatorId.toString() + "/" + name + ".png");
+        File file = new File(imageStoragePath + creatorId.toString() + "/" + name + ".png");
         return ImageIO.read(file);
     }
 
@@ -136,7 +113,7 @@ public class Image {
      * @param image The image to store.
      */
     public void storeImage(BufferedImage image) throws IOException {
-        File directory = new File(IMAGE_STORAGE_PATH + creatorId.toString());
+        File directory = new File(imageStoragePath + creatorId.toString());
         if (!directory.exists() && !directory.mkdirs()) {
             throw new IOException("Could not create directory");
         }
