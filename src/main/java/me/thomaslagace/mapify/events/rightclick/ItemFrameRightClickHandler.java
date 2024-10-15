@@ -1,8 +1,6 @@
 package me.thomaslagace.mapify.events.rightclick;
 
-import com.mojang.serialization.MapDecoder;
 import me.thomaslagace.mapify.Mapify;
-import me.thomaslagace.mapify.map.MapImage;
 import me.thomaslagace.mapify.map.MapsManager;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.minecraft.component.DataComponentTypes;

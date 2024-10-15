@@ -3,7 +3,7 @@ package me.thomaslagace.mapify;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.UUID;
-import me.thomaslagace.mapify.map.MinecraftColorMapUtil;
+
 import net.minecraft.component.type.MapIdComponent;
 import net.minecraft.item.map.MapState;
 import net.minecraft.world.World;

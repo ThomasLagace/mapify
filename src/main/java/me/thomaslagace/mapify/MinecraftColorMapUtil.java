@@ -1,4 +1,4 @@
-package me.thomaslagace.mapify.map;
+package me.thomaslagace.mapify;
 
 import java.awt.Color;
 import java.util.ArrayList;
