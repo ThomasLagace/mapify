@@ -15,8 +15,8 @@ public class Image {
     private String name;
     private final URL url;
 
-    private final int maxWidth = Config.MAX_IMAGE_WIDTH;
-    private final int maxHeight = Config.MAX_IMAGE_HEIGHT;
+    private static final int maxWidth = Config.MAX_IMAGE_WIDTH;
+    private static final int maxHeight = Config.MAX_IMAGE_HEIGHT;
     private static final String imageStoragePath = Config.IMAGE_STORAGE_PATH;
 
     /**
