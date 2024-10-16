@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 public class ImageMinecraftManager {
     private static final Logger LOGGER = Mapify.LOGGER;
 
-    private static int nextId = 0;
+    private int nextId = 0;
     private final List<ImageMinecraft> imageMinecrafts;
     private final List<MapIdComponent> unusedMapIds;
 
@@ -27,7 +27,8 @@ public class ImageMinecraftManager {
      * @param minecraftImages The Minecraft images.
      * @param unusedMapIds The unused map ids.
      */
-    public ImageMinecraftManager(List<ImageMinecraft> minecraftImages, List<MapIdComponent> unusedMapIds) {
+    public ImageMinecraftManager(int id, List<ImageMinecraft> minecraftImages, List<MapIdComponent> unusedMapIds) {
+        this.nextId = id;
         this.imageMinecrafts = minecraftImages;
         this.unusedMapIds = unusedMapIds;
     }
@@ -119,7 +120,7 @@ public class ImageMinecraftManager {
     public static ImageMinecraftManager deserialize(String filePath) {
         File file = new File(filePath);
         if (!file.exists()) {
-            return new ImageMinecraftManager(new ArrayList<>(), new ArrayList<>());
+            return new ImageMinecraftManager(0, new ArrayList<>(), new ArrayList<>());
         }
 
         Gson gson = new Gson();
@@ -132,6 +133,6 @@ public class ImageMinecraftManager {
         } catch (Exception e) {
             LOGGER.error("Failed to deserialize ImageMinecraftManager", e);
         }
-        return new ImageMinecraftManager(new ArrayList<>(), new ArrayList<>());
+        return new ImageMinecraftManager(0, new ArrayList<>(), new ArrayList<>());
     }
 }

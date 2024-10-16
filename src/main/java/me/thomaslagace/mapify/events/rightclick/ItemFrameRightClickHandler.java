@@ -10,6 +10,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
@@ -44,6 +45,10 @@ public class ItemFrameRightClickHandler {
             return ActionResult.PASS;
         }
 
+        if (itemFrame.getHeldItemStack().getItem() != Items.AIR) {
+            return ActionResult.FAIL;
+        }
+
         ImageMinecraft imageMinecraft = Mapify.imageManager.getMapImageById(usedItemNbtCompound.getInt("mapify.id"));
 
         if (imageMinecraft == null) {
@@ -61,24 +66,21 @@ public class ItemFrameRightClickHandler {
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                Mapify.LOGGER.info("y:" + y + " x: " + x + "  " + itemFrames[y][x]);
-            }
-        }
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
                 if (itemFrames[y][x] == null) {
                     playerEntity.sendMessage(Text.of("Item frame not found."), true);
+                    return ActionResult.FAIL;
+                } else if (itemFrames[y][x].getHeldItemStack().getItem() != Items.AIR) {
+                    playerEntity.sendMessage(Text.of("Some item frames are not empty"), true);
                     return ActionResult.FAIL;
                 }
             }
         }
 
-
         ItemStack[][] mapItems = imageMinecraft.getMapItemStack();
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 itemFrames[y][x].setHeldItemStack(mapItems[y][x]);
+                itemFrames[y][x].setRotation(0);
             }
         }
 

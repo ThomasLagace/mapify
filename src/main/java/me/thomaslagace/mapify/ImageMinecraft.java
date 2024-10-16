@@ -3,6 +3,7 @@ package me.thomaslagace.mapify;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.UUID;
+import net.minecraft.block.MapColor;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.MapIdComponent;
 import net.minecraft.item.ItemStack;
@@ -118,7 +119,13 @@ public class ImageMinecraft {
 
                 for (int i = 0; i < 128; i++) {
                     for (int j = 0; j < 128; j++) {
-                        int color = resizedImage.getRGB(x * 128 + i, y * 128 + j);
+                        int color;
+                        try {
+                            color = resizedImage.getRGB(x * 128 + i, y * 128 + j);
+                        } catch (ArrayIndexOutOfBoundsException e) {
+                            mapState.setColor(i, j, MapColor.CLEAR.getRenderColorByte(MapColor.Brightness.NORMAL));
+                            continue;
+                        }
 
                         int alpha = (color >> 24) & 0xff;
                         int red = (color >> 16) & 0xff;

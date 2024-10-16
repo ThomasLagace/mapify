@@ -54,7 +54,7 @@ public class MapifyCommand {
         CommandRegistryAccess registryAccess,
         CommandManager.RegistrationEnvironment environment) {
 
-        dispatcher.register(CommandManager.literal("mapfiy")
+        dispatcher.register(CommandManager.literal("mapify")
                 // /mapify create <width> <height> <name> <url>
                 .then(CommandManager.literal("create")
                         .then(CommandManager.argument("width", IntegerArgumentType.integer())
