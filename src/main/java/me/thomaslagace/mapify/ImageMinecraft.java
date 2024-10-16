@@ -132,7 +132,11 @@ public class ImageMinecraft {
                         int green = (color >> 8) & 0xff;
                         int blue = color & 0xff;
 
-                        mapState.setColor(i, j, MinecraftColorMapUtil.getClosestRenderColor(red, green, blue));
+                        if (alpha <= 128) {
+                            mapState.setColor(i, j, MapColor.CLEAR.getRenderColorByte(MapColor.Brightness.NORMAL));
+                        } else {
+                            mapState.setColor(i, j, MinecraftColorMapUtil.getClosestRenderColor(red, green, blue));
+                        }
                     }
                 }
 
