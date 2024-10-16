@@ -15,7 +15,7 @@ public class Image {
     private static final int maxHeight = Config.MAX_IMAGE_HEIGHT;
     private static final String imageStoragePath = Config.IMAGE_STORAGE_PATH;
 
-    private UUID creatorId;
+    private final UUID creatorId;
     private String name;
     private final URL url;
 

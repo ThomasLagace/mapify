@@ -1,6 +1,7 @@
 package me.thomaslagace.mapify.events.rightclick;
 
 import java.util.List;
+import me.thomaslagace.mapify.Config;
 import me.thomaslagace.mapify.ImageMinecraft;
 import me.thomaslagace.mapify.Mapify;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
@@ -52,7 +53,7 @@ public class ItemFrameRightClickHandler {
         ImageMinecraft imageMinecraft = Mapify.imageManager.getMapImageById(usedItemNbtCompound.getInt("mapify.id"));
 
         if (imageMinecraft == null) {
-            playerEntity.sendMessage(Text.of("Map not found."), true);
+            playerEntity.sendMessage(Text.of(Config.MAP_NOT_FOUND), true);
             return ActionResult.FAIL;
         }
 
@@ -67,10 +68,10 @@ public class ItemFrameRightClickHandler {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 if (itemFrames[y][x] == null) {
-                    playerEntity.sendMessage(Text.of("Item frame not found."), true);
+                    playerEntity.sendMessage(Text.of(Config.ITEM_FRAME_NOT_FOUND), true);
                     return ActionResult.FAIL;
                 } else if (itemFrames[y][x].getHeldItemStack().getItem() != Items.AIR) {
-                    playerEntity.sendMessage(Text.of("Some item frames are not empty"), true);
+                    playerEntity.sendMessage(Text.of(Config.ITEM_FRAMES_NOT_EMPTY), true);
                     return ActionResult.FAIL;
                 }
             }

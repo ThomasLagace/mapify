@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-
+import me.thomaslagace.mapify.Config;
 import me.thomaslagace.mapify.Image;
 import me.thomaslagace.mapify.ImageMinecraft;
 import me.thomaslagace.mapify.Mapify;
@@ -21,7 +21,6 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
-import net.minecraft.component.type.MapIdComponent;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -30,7 +29,6 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-
 
 /**
  * Class that handles the /mapify command.
@@ -54,17 +52,17 @@ public class MapifyCommand {
         CommandRegistryAccess registryAccess,
         CommandManager.RegistrationEnvironment environment) {
 
-        dispatcher.register(CommandManager.literal("mapify")
+        dispatcher.register(CommandManager.literal(Config.MAPIFY_ROOT_COMMAND)
                 // /mapify create <width> <height> <name> <url>
-                .then(CommandManager.literal("create")
-                        .then(CommandManager.argument("width", IntegerArgumentType.integer())
-                                .then(CommandManager.argument("height", IntegerArgumentType.integer())
-                                        .then(CommandManager.argument("name", StringArgumentType.string())
-                                                .then(CommandManager.argument("url", StringArgumentType.greedyString())
+                .then(CommandManager.literal(Config.MAPIFY_CREATE_ARGUMENT_COMMAND)
+                        .then(CommandManager.argument(Config.MAPIFY_WIDTH_ARGUMENT_COMMAND, IntegerArgumentType.integer())
+                                .then(CommandManager.argument(Config.MAPIFY_HEIGHT_ARGUMENT_COMMAND, IntegerArgumentType.integer())
+                                        .then(CommandManager.argument(Config.MAPIFY_NAME_ARGUMENT_COMMAND, StringArgumentType.string())
+                                                .then(CommandManager.argument(Config.MAPIFY_URL_ARGUMENT_COMMAND, StringArgumentType.greedyString())
                                                         .executes(MapifyCommand::create))))))
                 // /mapify get <name>
-                .then(CommandManager.literal("get")
-                        .then(CommandManager.argument("name", StringArgumentType.string())
+                .then(CommandManager.literal(Config.MAPIFY_GET_ARGUMENT_COMMAND)
+                        .then(CommandManager.argument(Config.MAPIFY_NAME_ARGUMENT_COMMAND, StringArgumentType.string())
                                 .suggests((context, builder) -> {
                                     ServerPlayerEntity player = context.getSource().getPlayer();
                                     if (player == null) {
@@ -90,33 +88,41 @@ public class MapifyCommand {
     private static int create(CommandContext<ServerCommandSource> context) {
         ServerCommandSource source = context.getSource();
         if (!(source.getEntity() instanceof ServerPlayerEntity)) {
-            source.sendError(Text.literal("You must be a player to run this command"));
+            source.sendError(Text.literal(Config.MUST_BE_PLAYER));
             return 0;
         }
 
         URL url;
         try {
-            URI uri = new URI(StringArgumentType.getString(context, "url"));
+            URI uri = new URI(StringArgumentType.getString(context, Config.MAPIFY_URL_ARGUMENT_COMMAND));
             url = uri.toURL();
         } catch (MalformedURLException | URISyntaxException e) {
-            source.sendError(Text.literal("Invalid URL"));
+            source.sendError(Text.literal(Config.INVALID_URL));
             return 0;
         }
 
-        source.sendMessage(Text.literal("Creating map..."));
+        if (!Config.ALLOWED_IMAGE_DOMAINS.isEmpty()
+                && Config.ALLOWED_IMAGE_DOMAINS.stream().noneMatch(url.getHost()::contains)) {
+            source.sendError(Text.literal(Config.INVALID_DOMAIN));
+            return 0;
+        }
+
+        source.sendMessage(Text.literal(Config.CREATING_IMAGE));
 
         UUID playerId = source.getPlayer().getUuid();
-        String name = StringArgumentType.getString(context, "name");
-        int width = IntegerArgumentType.getInteger(context, "width");
-        int height = IntegerArgumentType.getInteger(context, "height");
+        String name = StringArgumentType.getString(context, Config.MAPIFY_NAME_ARGUMENT_COMMAND);
+        int width = IntegerArgumentType.getInteger(context, Config.MAPIFY_WIDTH_ARGUMENT_COMMAND);
+        int height = IntegerArgumentType.getInteger(context, Config.MAPIFY_HEIGHT_ARGUMENT_COMMAND);
 
         Image image = new Image(playerId, name, url);
-        ImageMinecraft imageMinecraft = new ImageMinecraft(Mapify.imageManager.getNextId(), playerId,name, image, width, height);
+        ImageMinecraft imageMinecraft = new ImageMinecraft(Mapify.imageManager.getNextId(), playerId, name, image, width, height);
 
         imageMinecraft.reserveMapIds(source.getWorld());
         imageMinecraft.assignMapStateToWorld(source.getWorld());
 
         Mapify.imageManager.add(imageMinecraft);
+
+        source.sendMessage(Text.literal(Config.IMAGE_CREATED));
 
         return Command.SINGLE_SUCCESS;
     }
@@ -130,13 +136,13 @@ public class MapifyCommand {
     private static int get(CommandContext<ServerCommandSource> context) {
         ServerCommandSource source = context.getSource();
         if (!(source.getEntity() instanceof ServerPlayerEntity)) {
-            source.sendError(Text.literal("You must be a player to run this command"));
+            source.sendError(Text.literal(Config.MUST_BE_PLAYER));
             return 0;
         }
 
         ServerPlayerEntity player = (ServerPlayerEntity) source.getEntity();
 
-        String name = StringArgumentType.getString(context, "name");
+        String name = StringArgumentType.getString(context, Config.MAPIFY_NAME_ARGUMENT_COMMAND);
 
         List<ImageMinecraft> allMapsImage = Mapify.imageManager.getImages();
 
@@ -150,7 +156,7 @@ public class MapifyCommand {
         }
 
         if (mapImage == null) {
-            source.sendError(Text.literal("Map not found"));
+            source.sendError(Text.literal(Config.IMAGE_NOT_FOUND));
             return 0;
         }
 
@@ -164,7 +170,7 @@ public class MapifyCommand {
         LoreComponent loreComponent = new LoreComponent(new ArrayList<>());
         loreComponent.lines().add(Text.of(mapImage.getName()));
         loreComponent.lines().add(Text.of(mapImage.getImage().getUrl().toString()));
-        loreComponent.lines().add(Text.of("Created by " + creatorName));
+        loreComponent.lines().add(Text.of(Config.CREATED_BY + creatorName));
         paper.set(DataComponentTypes.LORE, loreComponent);
 
         NbtCompound nbtCompound = new NbtCompound();

@@ -16,13 +16,15 @@ import org.slf4j.Logger;
  * Bridge between an image and the Minecraft maps that it is displayed on.
  */
 public class ImageMinecraft {
+    private static final Logger LOGGER = Mapify.LOGGER;
+    private static final int MAX_MAPS_WIDTH = Config.MAX_MAPS_WIDTH;
+    private static final int MAX_MAPS_HEIGHT = Config.MAX_MAPS_HEIGHT;
+
     private final int id;
     private final UUID creatorId;
     private final String name;
     private final Image image;
     private final MapIdComponent[][] minecraftMapIds;
-
-    private static final Logger LOGGER = Mapify.LOGGER;
 
     /**
      * Creates a new ImageMinecraft.
@@ -34,6 +36,10 @@ public class ImageMinecraft {
      * @param minecraftMapIds The ids of the Minecraft maps that the image is displayed on.
      */
     public ImageMinecraft(int id, UUID creatorId, String name, Image image, MapIdComponent[][] minecraftMapIds) {
+        if (minecraftMapIds.length > MAX_MAPS_HEIGHT || minecraftMapIds[0].length > MAX_MAPS_WIDTH) {
+            throw new IllegalArgumentException("ImageMinecraft is too large with current config");
+        }
+
         this.id = id;
         this.creatorId = creatorId;
         this.name = name;

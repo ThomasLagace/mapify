@@ -16,6 +16,7 @@ import org.slf4j.Logger;
  */
 public class ImageMinecraftManager {
     private static final Logger LOGGER = Mapify.LOGGER;
+    private static final int MAX_MAPS_COUNT_BY_USER = Config.MAX_MAPS_COUNT_BY_USER;
 
     private int nextId = 0;
     private final List<ImageMinecraft> imageMinecrafts;
@@ -62,11 +63,18 @@ public class ImageMinecraftManager {
      * @param imageMinecraft The ImageMinecraft to add.
      */
     public void add(ImageMinecraft imageMinecraft) {
+        int numberOfMaps = 0;
         for (ImageMinecraft image : imageMinecrafts) {
-            if (image.getName().equals(imageMinecraft.getName())
-                && image.getCreatorId().equals(imageMinecraft.getCreatorId())) {
-                throw new IllegalArgumentException("An image with the same name already exists");
+            if (image.getCreatorId().equals(imageMinecraft.getCreatorId())) {
+                numberOfMaps++;
+                if (image.getName().equals(imageMinecraft.getName())) {
+                    throw new IllegalArgumentException("An image with the same name already exists");
+                }
             }
+        }
+
+        if (numberOfMaps >= MAX_MAPS_COUNT_BY_USER) {
+            throw new IllegalArgumentException("User has too many maps, limit is " + MAX_MAPS_COUNT_BY_USER + " with current config");
         }
 
         imageMinecrafts.add(imageMinecraft);
