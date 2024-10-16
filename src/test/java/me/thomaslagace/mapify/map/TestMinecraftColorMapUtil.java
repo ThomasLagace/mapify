@@ -2,6 +2,7 @@ package me.thomaslagace.mapify.map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import me.thomaslagace.mapify.MinecraftColorMapUtil;
 import org.junit.jupiter.api.Test;
 
 /**
