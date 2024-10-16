@@ -90,6 +90,7 @@ public class ImageMinecraftManager {
             unusedMapIds.addAll(Arrays.asList(mapIds));
         }
         imageMinecrafts.remove(imageMinecraft);
+        imageMinecraft.delete();
     }
 
     /**

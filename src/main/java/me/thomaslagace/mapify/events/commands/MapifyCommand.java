@@ -13,9 +13,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.CompletableFuture;
 
+import com.mojang.brigadier.suggestion.SuggestionProvider;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import me.thomaslagace.mapify.Config;
 import me.thomaslagace.mapify.Image;
 import me.thomaslagace.mapify.ImageMinecraft;
@@ -44,6 +46,20 @@ public class MapifyCommand {
         CommandRegistrationCallback.EVENT.register(MapifyCommand::listener);
     }
 
+    private static CompletableFuture<Suggestions> suggestImages(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) {
+        ServerPlayerEntity player = context.getSource().getPlayer();
+        if (player == null) {
+            return builder.buildFuture();
+        }
+
+        Mapify.imageManager.getImages().forEach(map -> {
+            if (map.getCreatorId().equals(player.getUuid())) {
+                builder.suggest(map.getName());
+            }
+        });
+        return builder.buildFuture();
+    }
+
     /**
      * Listener for the /mapify command.
      *
@@ -66,20 +82,16 @@ public class MapifyCommand {
                 // /mapify get <name>
                 .then(CommandManager.literal(Config.MAPIFY_GET_ARGUMENT_COMMAND)
                         .then(CommandManager.argument(Config.MAPIFY_NAME_ARGUMENT_COMMAND, StringArgumentType.string())
-                                .suggests((context, builder) -> {
-                                    ServerPlayerEntity player = context.getSource().getPlayer();
-                                    if (player == null) {
-                                        return builder.buildFuture();
-                                    }
-
-                                    Mapify.imageManager.getImages().forEach(map -> {
-                                        if (map.getCreatorId() == player.getUuid()) {
-                                            builder.suggest(map.getName());
-                                        }
-                                    });
-                                    return builder.buildFuture();
-                                })
-                                .executes(MapifyCommand::get))));
+                                .suggests(MapifyCommand::suggestImages)
+                                .executes(MapifyCommand::get)))
+                // /mapify list
+                .then(CommandManager.literal(Config.MAPIFY_LIST_ARGUMENT_COMMAND)
+                        .executes(MapifyCommand::list))
+                // /mapify remove <name>
+                .then(CommandManager.literal(Config.MAPIFY_REMOVE_ARGUMENT_COMMAND)
+                        .then(CommandManager.argument(Config.MAPIFY_NAME_ARGUMENT_COMMAND, StringArgumentType.string())
+                                .suggests(MapifyCommand::suggestImages)
+                                .executes(MapifyCommand::remove))));
     }
 
     /**
@@ -110,12 +122,20 @@ public class MapifyCommand {
             return 0;
         }
 
+        int mapCount = 0;
         for (ImageMinecraft imageMinecraft : Mapify.imageManager.getImages()) {
-            if (imageMinecraft.getCreatorId().equals(source.getPlayer().getUuid())
-                && imageMinecraft.getName().equals(StringArgumentType.getString(context, Config.MAPIFY_NAME_ARGUMENT_COMMAND))) {
-                source.sendError(Text.literal(Config.IMAGE_ALREADY_EXISTS));
-                return 0;
+            if (imageMinecraft.getCreatorId().equals(source.getPlayer().getUuid())) {
+                mapCount++;
+                if (imageMinecraft.getName().equals(StringArgumentType.getString(context, Config.MAPIFY_NAME_ARGUMENT_COMMAND))) {
+                    source.sendError(Text.literal(Config.IMAGE_ALREADY_EXISTS));
+                    return 0;
+                }
             }
+        }
+
+        if (mapCount >= Config.MAX_MAPS_COUNT_BY_USER) {
+            source.sendError(Text.literal(Config.USER_MAP_LIMIT_REACHED));
+            return 0;
         }
 
         source.sendMessage(Text.literal(Config.CREATING_IMAGE));
@@ -178,6 +198,70 @@ public class MapifyCommand {
         player.getInventory().insertStack(paper);
 
         return Command.SINGLE_SUCCESS;
+    }
+
+    /**
+     * Listener for the /mapify list command.
+     *
+     * @param context The command context.
+     * @return The result of the command.
+     */
+    public static int list(CommandContext<ServerCommandSource> context) {
+        ServerCommandSource source = context.getSource();
+        if (!(source.getEntity() instanceof ServerPlayerEntity)) {
+            source.sendError(Text.literal(Config.MUST_BE_PLAYER));
+            return 0;
+        }
+
+        ServerPlayerEntity player = (ServerPlayerEntity) source.getEntity();
+
+        List<ImageMinecraft> allMapsImage = Mapify.imageManager.getImages();
+
+        int imageCount = 0;
+        StringBuilder message = new StringBuilder();
+        message.append("--------------------\n");
+        for (ImageMinecraft map : allMapsImage) {
+            if (map.getCreatorId().equals(player.getUuid())) {
+                message.append(String.format("%d : %s %d x %d", imageCount + 1, map.getName(), map.getWidth(), map.getHeight())).append("\n");
+                imageCount++;
+            }
+        }
+
+        if (imageCount <= 0) {
+            message.append(Config.CURRENTLY_NO_IMAGES);
+        }
+
+        message.insert(0, String.format(Config.CURRENTLY_IMAGES_COUNT, imageCount, Config.MAX_MAPS_COUNT_BY_USER) + "\n");
+
+        source.sendMessage(Text.literal(message.toString()));
+
+        return Command.SINGLE_SUCCESS;
+    }
+
+    public static int remove(CommandContext<ServerCommandSource> context) {
+        ServerCommandSource source = context.getSource();
+        if (!(source.getEntity() instanceof ServerPlayerEntity)) {
+            source.sendError(Text.literal(Config.MUST_BE_PLAYER));
+            return 0;
+        }
+
+        ServerPlayerEntity player = (ServerPlayerEntity) source.getEntity();
+
+        String name = StringArgumentType.getString(context, Config.MAPIFY_NAME_ARGUMENT_COMMAND);
+
+        List<ImageMinecraft> allMapsImage = Mapify.imageManager.getImages();
+        for (ImageMinecraft map : allMapsImage) {
+            if (map.getName().equals(name)
+                && map.getCreatorId().equals(player.getUuid())) {
+
+                Mapify.imageManager.remove(map);
+                source.sendMessage(Text.literal(Config.IMAGE_REMOVED));
+                return Command.SINGLE_SUCCESS;
+            }
+        }
+
+        source.sendError(Text.literal(Config.IMAGE_NOT_FOUND));
+        return 0;
     }
 
     /**

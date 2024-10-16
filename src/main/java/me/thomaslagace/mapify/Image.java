@@ -124,6 +124,14 @@ public class Image {
     }
 
     /**
+     * Deletes the image from disk.
+     */
+    public void deleteImage() {
+        File file = new File(imageStoragePath + creatorId.toString() + "/" + name + ".png");
+        file.delete();
+    }
+
+    /**
      * Returns if the name is valid.
      *
      * @param name The name to check.

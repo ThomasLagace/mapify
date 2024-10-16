@@ -184,4 +184,11 @@ public class ImageMinecraft {
 
         return maps;
     }
+
+    /**
+     * Deconstructs the image minecraft.
+     */
+    public void delete() {
+        image.deleteImage();
+    }
 }
