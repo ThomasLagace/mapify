@@ -13,6 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import me.thomaslagace.mapify.Config;
 import me.thomaslagace.mapify.Image;
 import me.thomaslagace.mapify.ImageMinecraft;
@@ -107,6 +110,14 @@ public class MapifyCommand {
             return 0;
         }
 
+        for (ImageMinecraft imageMinecraft : Mapify.imageManager.getImages()) {
+            if (imageMinecraft.getCreatorId().equals(source.getPlayer().getUuid())
+                && imageMinecraft.getName().equals(StringArgumentType.getString(context, Config.MAPIFY_NAME_ARGUMENT_COMMAND))) {
+                source.sendError(Text.literal(Config.IMAGE_ALREADY_EXISTS));
+                return 0;
+            }
+        }
+
         source.sendMessage(Text.literal(Config.CREATING_IMAGE));
 
         UUID playerId = source.getPlayer().getUuid();
@@ -118,11 +129,13 @@ public class MapifyCommand {
         ImageMinecraft imageMinecraft = new ImageMinecraft(Mapify.imageManager.getNextId(), playerId, name, image, width, height);
 
         imageMinecraft.reserveMapIds(source.getWorld());
-        imageMinecraft.assignMapStateToWorld(source.getWorld());
+        imageMinecraft.assignMapStateToWorldAsync(source.getWorld());
 
         Mapify.imageManager.add(imageMinecraft);
-
         source.sendMessage(Text.literal(Config.IMAGE_CREATED));
+
+        ServerPlayerEntity player = (ServerPlayerEntity) source.getEntity();
+        player.getInventory().insertStack(createMapItemStack(imageMinecraft, source));
 
         return Command.SINGLE_SUCCESS;
     }
@@ -160,6 +173,20 @@ public class MapifyCommand {
             return 0;
         }
 
+        ItemStack paper = createMapItemStack(mapImage, source);
+
+        player.getInventory().insertStack(paper);
+
+        return Command.SINGLE_SUCCESS;
+    }
+
+    /**
+     * Creates a map item stack from an image minecraft.
+     *
+     * @param mapImage The image minecraft.
+     * @return The map paper item stack.
+     */
+    public static ItemStack createMapItemStack(ImageMinecraft mapImage, ServerCommandSource source) {
         ItemStack paper = new ItemStack(Items.PAPER, 1);
 
         Text paperName = Text.of(String.format("%s %s x %s", mapImage.getName(), mapImage.getWidth(), mapImage.getHeight()));
@@ -184,8 +211,6 @@ public class MapifyCommand {
         NbtComponent nbt = NbtComponent.of(nbtCompound);
         paper.set(DataComponentTypes.CUSTOM_DATA, nbt);
 
-        player.getInventory().insertStack(paper);
-
-        return Command.SINGLE_SUCCESS;
+        return paper;
     }
 }

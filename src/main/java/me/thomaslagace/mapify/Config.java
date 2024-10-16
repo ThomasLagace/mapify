@@ -24,6 +24,7 @@ public class Config {
     public static final String IMAGE_CREATED = "The image has been created!";
     public static final String IMAGE_NOT_FOUND = "The image was not found";
     public static final String CREATED_BY = "Created by ";
+    public static final String IMAGE_ALREADY_EXISTS = "Image is already created with this name";
 
     public static final String MAPIFY_ROOT_COMMAND = "mapify";
     public static final String MAPIFY_CREATE_ARGUMENT_COMMAND = "create";

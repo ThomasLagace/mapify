@@ -3,6 +3,9 @@ package me.thomaslagace.mapify;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import net.minecraft.block.MapColor;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.MapIdComponent;
@@ -100,6 +103,17 @@ public class ImageMinecraft {
                 minecraftMapIds[y][x] = world.increaseAndGetMapId();
             }
         }
+    }
+
+    /**
+     * Assigns the map state of the maps in the world with the colors of the image asynchronously.
+     *
+     * @param world The world to assign the map states to.
+     */
+    public void assignMapStateToWorldAsync(World world) {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.submit(() -> assignMapStateToWorld(world));
+        executor.shutdown();
     }
 
     /**
