@@ -12,7 +12,7 @@ public class Config {
     public static final int MAX_MAPS_WIDTH = 10;
     public static final int MAX_MAPS_HEIGHT = 10;
     public static final String IMAGE_STORAGE_PATH = "mapify/images/";
-    public static List<String> ALLOWED_IMAGE_DOMAINS = List.of("picsum.photos");
+    public static List<String> ALLOWED_IMAGE_DOMAINS = List.of();
 
     public static final String MAP_NOT_FOUND = "Map not found";
     public static final String ITEM_FRAME_NOT_FOUND = "Item frame not found";
