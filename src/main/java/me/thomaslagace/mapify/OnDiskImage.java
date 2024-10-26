@@ -38,6 +38,15 @@ public class OnDiskImage {
     }
 
     /**
+     * Gets the name of the image.
+     *
+     * @return The name of the image.
+     */
+    public String getName() {
+        return this.name;
+    }
+
+    /**
      * Gets the image extension.
      *
      * @return The image extension.
