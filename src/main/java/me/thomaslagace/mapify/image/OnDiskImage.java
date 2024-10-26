@@ -26,9 +26,8 @@ public class OnDiskImage {
      *
      * @param name The name of the image.
      * @param path The path to the image.
-     * @param image The image to store.
      */
-    public OnDiskImage(String name, Path path, BufferedImage image) {
+    public OnDiskImage(String name, Path path) {
         if (!OnDiskImage.nameIsValid(name)) {
             throw new IllegalArgumentException("Invalid name");
         }
