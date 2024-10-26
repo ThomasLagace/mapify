@@ -1,4 +1,4 @@
-package me.thomaslagace.mapify;
+package me.thomaslagace.mapify.minecraft;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -6,6 +6,10 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import me.thomaslagace.mapify.image.Image;
+import me.thomaslagace.mapify.Mapify;
+import me.thomaslagace.mapify.config.Config;
+import me.thomaslagace.mapify.image.ImageUtil;
 import net.minecraft.block.MapColor;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.MapIdComponent;

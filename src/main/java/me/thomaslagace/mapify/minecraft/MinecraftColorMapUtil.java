@@ -1,4 +1,4 @@
-package me.thomaslagace.mapify;
+package me.thomaslagace.mapify.minecraft;
 
 import java.awt.Color;
 import java.util.ArrayList;

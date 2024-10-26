@@ -1,4 +1,4 @@
-package me.thomaslagace.mapify;
+package me.thomaslagace.mapify.image;
 
 import java.awt.image.BufferedImage;
 import java.io.File;

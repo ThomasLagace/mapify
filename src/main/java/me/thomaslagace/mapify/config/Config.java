@@ -1,7 +1,6 @@
-package me.thomaslagace.mapify;
+package me.thomaslagace.mapify.config;
 
 import java.util.List;
-import java.util.Locale;
 
 /**
  * The configuration of the application.

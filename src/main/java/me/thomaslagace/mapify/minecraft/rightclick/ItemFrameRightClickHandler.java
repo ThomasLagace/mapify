@@ -1,8 +1,8 @@
-package me.thomaslagace.mapify.events.rightclick;
+package me.thomaslagace.mapify.minecraft.rightclick;
 
 import java.util.List;
-import me.thomaslagace.mapify.Config;
-import me.thomaslagace.mapify.ImageMinecraft;
+import me.thomaslagace.mapify.config.Config;
+import me.thomaslagace.mapify.minecraft.ImageMinecraft;
 import me.thomaslagace.mapify.Mapify;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.minecraft.component.DataComponentTypes;

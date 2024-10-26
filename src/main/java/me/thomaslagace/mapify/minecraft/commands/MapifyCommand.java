@@ -1,4 +1,4 @@
-package me.thomaslagace.mapify.events.commands;
+package me.thomaslagace.mapify.minecraft.commands;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
@@ -15,12 +15,11 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import me.thomaslagace.mapify.Config;
-import me.thomaslagace.mapify.Image;
-import me.thomaslagace.mapify.ImageMinecraft;
+import me.thomaslagace.mapify.config.Config;
+import me.thomaslagace.mapify.image.Image;
+import me.thomaslagace.mapify.minecraft.ImageMinecraft;
 import me.thomaslagace.mapify.Mapify;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.CommandRegistryAccess;

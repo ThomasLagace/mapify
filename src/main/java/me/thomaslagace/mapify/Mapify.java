@@ -1,7 +1,8 @@
 package me.thomaslagace.mapify;
 
-import me.thomaslagace.mapify.events.commands.MapifyCommand;
-import me.thomaslagace.mapify.events.rightclick.ItemFrameRightClickHandler;
+import me.thomaslagace.mapify.minecraft.commands.MapifyCommand;
+import me.thomaslagace.mapify.minecraft.rightclick.ItemFrameRightClickHandler;
+import me.thomaslagace.mapify.minecraft.ImageMinecraftManager;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import org.slf4j.Logger;
