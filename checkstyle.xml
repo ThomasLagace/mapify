@@ -56,10 +56,6 @@
     <module name="FallThrough">
       <property name="checkLastCaseGroup" value="true"/>
     </module>
-    <module name="FinalLocalVariable">
-      <property name="validateEnhancedForLoopVariable" value="true"/>
-      <property name="tokens" value="VARIABLE_DEF, PARAMETER_DEF"/>
-    </module>
     <module name="MultipleVariableDeclarations"/>
     <module name="NoFinalizer"/>
     <module name="OneStatementPerLine"/>
@@ -124,9 +120,6 @@
     <module name="SummaryJavadoc"/>
     <module name="ArrayTypeStyle"/>
     <module name="AvoidEscapedUnicodeCharacters"/>
-    <module name="FinalParameters">
-      <property name="tokens" value="METHOD_DEF, CTOR_DEF"/>
-    </module>
     <module name="NoCodeInFile"/>
     <module name="OuterTypeFilename"/>
     <module name="TodoComment">
@@ -166,9 +159,6 @@
     </module>
     <module name="EmptyForInitializerPad"/>
     <module name="EmptyForIteratorPad"/>
-    <module name="EmptyLineSeparator">
-      <property name="tokens" value="PACKAGE_DEF, IMPORT, STATIC_IMPORT, CLASS_DEF, INTERFACE_DEF, ENUM_DEF, STATIC_INIT, INSTANCE_INIT, METHOD_DEF, CTOR_DEF, VARIABLE_DEF, RECORD_DEF, COMPACT_CTOR_DEF"/>
-    </module>
     <module name="GenericWhitespace"/>
     <module name="MethodParamPad">
       <property name="tokens" value="CTOR_DEF, CTOR_CALL, LITERAL_NEW, METHOD_CALL, METHOD_DEF, SUPER_CTOR_CALL, ENUM_CONSTANT_DEF, RECORD_DEF, RECORD_PATTERN_DEF"/>
