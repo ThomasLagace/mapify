@@ -2,7 +2,7 @@ package me.thomaslagace.mapify.minecraft.rightclick;
 
 import java.util.List;
 import me.thomaslagace.mapify.config.Config;
-import me.thomaslagace.mapify.minecraft.ImageMinecraft;
+import me.thomaslagace.mapify.minecraft.MinecraftImage;
 import me.thomaslagace.mapify.Mapify;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.minecraft.component.DataComponentTypes;
@@ -50,9 +50,9 @@ public class ItemFrameRightClickHandler {
             return ActionResult.FAIL;
         }
 
-        ImageMinecraft imageMinecraft = Mapify.imageManager.getMapImageById(usedItemNbtCompound.getInt("mapify.id"));
+        MinecraftImage minecraftImage = Mapify.imageManager.getMapImageById(usedItemNbtCompound.getInt("mapify.id"));
 
-        if (imageMinecraft == null) {
+        if (minecraftImage == null) {
             playerEntity.sendMessage(Text.of(Config.MAP_NOT_FOUND), true);
             return ActionResult.FAIL;
         }
@@ -77,7 +77,7 @@ public class ItemFrameRightClickHandler {
             }
         }
 
-        ItemStack[][] mapItems = imageMinecraft.getMapItemStack();
+        ItemStack[][] mapItems = minecraftImage.getMapItemStack();
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 itemFrames[y][x].setHeldItemStack(mapItems[y][x]);

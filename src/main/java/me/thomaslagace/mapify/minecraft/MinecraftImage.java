@@ -3,13 +3,9 @@ package me.thomaslagace.mapify.minecraft;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import me.thomaslagace.mapify.image.Image;
-import me.thomaslagace.mapify.Mapify;
 import me.thomaslagace.mapify.config.Config;
 import me.thomaslagace.mapify.image.ImageUtil;
+import me.thomaslagace.mapify.image.OnDiskImage;
 import net.minecraft.block.MapColor;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.MapIdComponent;
@@ -17,20 +13,17 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.map.MapState;
 import net.minecraft.world.World;
-import org.slf4j.Logger;
 
 /**
  * Bridge between an image and the Minecraft maps that it is displayed on.
  */
-public class ImageMinecraft {
-    private static final Logger LOGGER = Mapify.LOGGER;
+public class MinecraftImage {
     private static final int MAX_MAPS_WIDTH = Config.MAX_MAPS_WIDTH;
     private static final int MAX_MAPS_HEIGHT = Config.MAX_MAPS_HEIGHT;
 
     private final int id;
     private final UUID creatorId;
-    private final String name;
-    private final Image image;
+    private final OnDiskImage image;
     private final MapIdComponent[][] minecraftMapIds;
 
     /**
@@ -38,62 +31,72 @@ public class ImageMinecraft {
      *
      * @param id The id of the image minecraft.
      * @param creatorId The UUID of the creator of the image.
-     * @param name The name of the image.
      * @param image The image.
      * @param minecraftMapIds The ids of the Minecraft maps that the image is displayed on.
      */
-    public ImageMinecraft(int id, UUID creatorId, String name, Image image, MapIdComponent[][] minecraftMapIds) {
+    public MinecraftImage(int id, UUID creatorId, OnDiskImage image, MapIdComponent[][] minecraftMapIds) {
         if (minecraftMapIds.length > MAX_MAPS_HEIGHT || minecraftMapIds[0].length > MAX_MAPS_WIDTH) {
             throw new IllegalArgumentException("ImageMinecraft is too large with current config");
         }
 
         this.id = id;
         this.creatorId = creatorId;
-        this.name = name;
         this.image = image;
         this.minecraftMapIds = minecraftMapIds;
     }
 
     /**
-     * Creates a new ImageMinecraft.
+     * Gets the id of the minecraft image.
      *
-     * @param id The id of the image minecraft.
-     * @param creatorId The UUID of the creator of the image.
-     * @param name The name of the image.
-     * @param image The image.
-     * @param width The width of the map.
-     * @param height The height of the map.
+     * @return The id of the minecraft image.
      */
-    public ImageMinecraft(int id, UUID creatorId, String name, Image image, int width, int height) {
-        this(id, creatorId, name, image, new MapIdComponent[height][width]);
-    }
-
     public int getId() {
-        return id;
+        return this.id;
     }
 
+    /**
+     * Gets the UUID of the creator of the image.
+     *
+     * @return The UUID of the creator of the image.
+     */
     public UUID getCreatorId() {
-        return creatorId;
+        return this.creatorId;
     }
 
-    public String getName() {
-        return name;
+    /**
+     * Gets the image.
+     *
+     * @return The image.
+     */
+    public OnDiskImage getImage() {
+        return this.image;
     }
 
+    /**
+     * Gets the ids of the Minecraft maps that the image is displayed on.
+     *
+     * @return The ids of the Minecraft maps that the image is displayed on.
+     */
     public MapIdComponent[][] getMinecraftMapIds() {
-        return minecraftMapIds;
+        return this.minecraftMapIds;
     }
 
-    public Image getImage() {
-        return image;
-    }
-
+    /**
+     * Gets the height of the minecraft map image.
+     *
+     * @return The height of the minecraft map image.
+     */
     public int getHeight() {
-        return minecraftMapIds.length;
+        return this.minecraftMapIds.length;
     }
 
+    /**
+     * Gets the width of the minecraft map image.
+     *
+     * @return The width of the minecraft map image.
+     */
     public int getWidth() {
-        return minecraftMapIds[0].length;
+        return this.minecraftMapIds[0].length;
     }
 
     /**
@@ -102,22 +105,11 @@ public class ImageMinecraft {
      * @param world The world to reserve map ids in.
      */
     public void reserveMapIds(World world) {
-        for (int y = 0; y < getHeight(); y++) {
-            for (int x = 0; x < getWidth(); x++) {
-                minecraftMapIds[y][x] = world.increaseAndGetMapId();
+        for (int y = 0; y < this.getHeight(); y++) {
+            for (int x = 0; x < this.getWidth(); x++) {
+                this.minecraftMapIds[y][x] = world.increaseAndGetMapId();
             }
         }
-    }
-
-    /**
-     * Assigns the map state of the maps in the world with the colors of the image asynchronously.
-     *
-     * @param world The world to assign the map states to.
-     */
-    public void assignMapStateToWorldAsync(World world) {
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.submit(() -> assignMapStateToWorld(world));
-        executor.shutdown();
     }
 
     /**
@@ -125,20 +117,14 @@ public class ImageMinecraft {
      *
      * @param world The world to assign the map states to.
      */
-    public void assignMapStateToWorld(World world) {
-        BufferedImage bufferedImage;
-        try {
-            bufferedImage = image.getImage();
-        } catch (IOException e) {
-            LOGGER.error("Could not assign map state to world", e);
-            return;
-        }
+    public void assignMapStateToWorld(World world) throws IOException {
+        BufferedImage bufferedImage = this.image.loadImageFromDisk();
 
-        BufferedImage resizedImage = ImageUtil.resizeKeepRatio(bufferedImage, getWidth() * 128, getHeight() * 128);
+        BufferedImage resizedImage = ImageUtil.resizeKeepRatio(bufferedImage, this.getWidth() * 128, this.getHeight() * 128);
 
-        for (int y = 0; y < getHeight(); y++) {
-            for (int x = 0; x < getWidth(); x++) {
-                MapIdComponent mapId = minecraftMapIds[y][x];
+        for (int y = 0; y < this.getHeight(); y++) {
+            for (int x = 0; x < this.getWidth(); x++) {
+                MapIdComponent mapId = this.minecraftMapIds[y][x];
                 MapState mapState = MapState.of((byte) 0, true, world.getRegistryKey());
 
                 for (int i = 0; i < 128; i++) {
@@ -175,11 +161,11 @@ public class ImageMinecraft {
      * @return The map item stacks of the maps.
      */
     public ItemStack[][] getMapItemStack() {
-        ItemStack[][] maps = new ItemStack[getHeight()][getWidth()];
+        ItemStack[][] maps = new ItemStack[this.getHeight()][this.getWidth()];
 
-        for (int y = 0; y < getHeight(); y++) {
-            for (int x = 0; x < getWidth(); x++) {
-                MapIdComponent mapId = minecraftMapIds[y][x];
+        for (int y = 0; y < this.getHeight(); y++) {
+            for (int x = 0; x < this.getWidth(); x++) {
+                MapIdComponent mapId = this.minecraftMapIds[y][x];
                 ItemStack mapItem = new ItemStack(Items.FILLED_MAP, 1);
                 mapItem.set(DataComponentTypes.MAP_ID, mapId);
                 maps[y][x] = mapItem;
@@ -187,12 +173,5 @@ public class ImageMinecraft {
         }
 
         return maps;
-    }
-
-    /**
-     * Deconstructs the image minecraft.
-     */
-    public void delete() {
-        image.deleteImage();
     }
 }

@@ -19,7 +19,7 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import me.thomaslagace.mapify.config.Config;
 import me.thomaslagace.mapify.image.Image;
-import me.thomaslagace.mapify.minecraft.ImageMinecraft;
+import me.thomaslagace.mapify.minecraft.MinecraftImage;
 import me.thomaslagace.mapify.Mapify;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.CommandRegistryAccess;
@@ -67,8 +67,8 @@ public class MapifyCommand {
      * @param environment The command registration environment.
      */
     private static void listener(CommandDispatcher<ServerCommandSource> dispatcher,
-        CommandRegistryAccess registryAccess,
-        CommandManager.RegistrationEnvironment environment) {
+                                 CommandRegistryAccess registryAccess,
+                                 CommandManager.RegistrationEnvironment environment) {
 
         dispatcher.register(CommandManager.literal(Config.MAPIFY_ROOT_COMMAND)
                 // /mapify create <width> <height> <name> <url>
@@ -122,10 +122,10 @@ public class MapifyCommand {
         }
 
         int mapCount = 0;
-        for (ImageMinecraft imageMinecraft : Mapify.imageManager.getImages()) {
-            if (imageMinecraft.getCreatorId().equals(source.getPlayer().getUuid())) {
+        for (MinecraftImage minecraftImage : Mapify.imageManager.getImages()) {
+            if (minecraftImage.getCreatorId().equals(source.getPlayer().getUuid())) {
                 mapCount++;
-                if (imageMinecraft.getName().equals(StringArgumentType.getString(context, Config.MAPIFY_NAME_ARGUMENT_COMMAND))) {
+                if (minecraftImage.getName().equals(StringArgumentType.getString(context, Config.MAPIFY_NAME_ARGUMENT_COMMAND))) {
                     source.sendError(Text.literal(Config.IMAGE_ALREADY_EXISTS));
                     return 0;
                 }
@@ -145,16 +145,16 @@ public class MapifyCommand {
         int height = IntegerArgumentType.getInteger(context, Config.MAPIFY_HEIGHT_ARGUMENT_COMMAND);
 
         Image image = new Image(playerId, name, url);
-        ImageMinecraft imageMinecraft = new ImageMinecraft(Mapify.imageManager.getNextId(), playerId, name, image, width, height);
+        MinecraftImage minecraftImage = new MinecraftImage(Mapify.imageManager.getNextId(), playerId, name, image, width, height);
 
-        imageMinecraft.reserveMapIds(source.getWorld());
-        imageMinecraft.assignMapStateToWorldAsync(source.getWorld());
+        minecraftImage.reserveMapIds(source.getWorld());
+        minecraftImage.assignMapStateToWorldAsync(source.getWorld());
 
-        Mapify.imageManager.add(imageMinecraft);
+        Mapify.imageManager.add(minecraftImage);
         source.sendMessage(Text.literal(Config.IMAGE_CREATED));
 
         ServerPlayerEntity player = (ServerPlayerEntity) source.getEntity();
-        player.getInventory().insertStack(createMapItemStack(imageMinecraft, source));
+        player.getInventory().insertStack(createMapItemStack(minecraftImage, source));
 
         return Command.SINGLE_SUCCESS;
     }
@@ -176,10 +176,10 @@ public class MapifyCommand {
 
         String name = StringArgumentType.getString(context, Config.MAPIFY_NAME_ARGUMENT_COMMAND);
 
-        List<ImageMinecraft> allMapsImage = Mapify.imageManager.getImages();
+        List<MinecraftImage> allMapsImage = Mapify.imageManager.getImages();
 
-        ImageMinecraft mapImage = null;
-        for (ImageMinecraft map : allMapsImage) {
+        MinecraftImage mapImage = null;
+        for (MinecraftImage map : allMapsImage) {
             if (map.getName().equals(name)
                 && map.getCreatorId().equals(player.getUuid())) {
                 mapImage = map;
@@ -214,12 +214,12 @@ public class MapifyCommand {
 
         ServerPlayerEntity player = (ServerPlayerEntity) source.getEntity();
 
-        List<ImageMinecraft> allMapsImage = Mapify.imageManager.getImages();
+        List<MinecraftImage> allMapsImage = Mapify.imageManager.getImages();
 
         int imageCount = 0;
         StringBuilder message = new StringBuilder();
         message.append("--------------------\n");
-        for (ImageMinecraft map : allMapsImage) {
+        for (MinecraftImage map : allMapsImage) {
             if (map.getCreatorId().equals(player.getUuid())) {
                 message.append(String.format("%d : %s %d x %d", imageCount + 1, map.getName(), map.getWidth(), map.getHeight())).append("\n");
                 imageCount++;
@@ -248,8 +248,8 @@ public class MapifyCommand {
 
         String name = StringArgumentType.getString(context, Config.MAPIFY_NAME_ARGUMENT_COMMAND);
 
-        List<ImageMinecraft> allMapsImage = Mapify.imageManager.getImages();
-        for (ImageMinecraft map : allMapsImage) {
+        List<MinecraftImage> allMapsImage = Mapify.imageManager.getImages();
+        for (MinecraftImage map : allMapsImage) {
             if (map.getName().equals(name)
                 && map.getCreatorId().equals(player.getUuid())) {
 
@@ -269,7 +269,7 @@ public class MapifyCommand {
      * @param mapImage The image minecraft.
      * @return The map paper item stack.
      */
-    public static ItemStack createMapItemStack(ImageMinecraft mapImage, ServerCommandSource source) {
+    public static ItemStack createMapItemStack(MinecraftImage mapImage, ServerCommandSource source) {
         ItemStack paper = new ItemStack(Items.PAPER, 1);
 
         Text paperName = Text.of(String.format("%s %s x %s", mapImage.getName(), mapImage.getWidth(), mapImage.getHeight()));

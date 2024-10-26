@@ -2,7 +2,7 @@ package me.thomaslagace.mapify;
 
 import me.thomaslagace.mapify.minecraft.commands.MapifyCommand;
 import me.thomaslagace.mapify.minecraft.rightclick.ItemFrameRightClickHandler;
-import me.thomaslagace.mapify.minecraft.ImageMinecraftManager;
+import me.thomaslagace.mapify.minecraft.MinecraftImageManager;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import org.slf4j.Logger;
@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 public class Mapify implements ModInitializer {
     public static final String MOD_ID = "mapify";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-    public static final ImageMinecraftManager imageManager = ImageMinecraftManager.deserialize("./mapify/images.json");
+    public static final MinecraftImageManager imageManager = MinecraftImageManager.deserialize("./mapify/images.json");
 
     @Override
     public void onInitialize() {
