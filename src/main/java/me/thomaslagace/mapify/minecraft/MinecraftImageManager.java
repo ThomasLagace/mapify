@@ -3,28 +3,40 @@ package me.thomaslagace.mapify.minecraft;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import me.thomaslagace.mapify.Mapify;
+import java.util.UUID;
 import me.thomaslagace.mapify.config.Config;
 import net.minecraft.component.type.MapIdComponent;
-import org.slf4j.Logger;
 
 /**
  * Manages all the Minecraft images in the application.
  */
-public class MinecraftImageManager {
-    private static final Logger LOGGER = Mapify.LOGGER;
-    private static final int MAX_MAPS_COUNT_BY_USER = Config.MAX_MAPS_COUNT_BY_USER;
+public final class MinecraftImageManager {
+    /**
+     * The storage path for the ImageMinecraftManager.
+     */
     private static final String STORAGE_PATH = Config.STORAGE_PATH;
-
+    /**
+     * The instance of the ImageMinecraftManager.
+     */
     private static MinecraftImageManager instance;
-
+    /**
+     * The next id to use and the list of ImageMinecraft.
+     */
     private int nextId;
-    private final List<MinecraftImage> MinecraftImages;
+    /**
+     * List of ImageMinecraft.
+     */
+    private final List<MinecraftImage> minecraftImages;
+    /**
+     * The list of unused MapIdComponent.
+     */
     private final List<MapIdComponent> unusedMapIds;
 
     /**
@@ -36,7 +48,7 @@ public class MinecraftImageManager {
      */
     private MinecraftImageManager(int id, List<MinecraftImage> minecraftImages, List<MapIdComponent> unusedMapIds) {
         this.nextId = id;
-        this.MinecraftImages = minecraftImages;
+        this.minecraftImages = minecraftImages;
         this.unusedMapIds = unusedMapIds;
     }
 
@@ -47,17 +59,24 @@ public class MinecraftImageManager {
      */
     public static MinecraftImageManager getInstance() {
         if (instance == null) {
-            instance = deserialize();
+            try {
+                instance = deserialize(STORAGE_PATH);
+            } catch (FileNotFoundException e) {
+                instance = newInstance();
+            }
         }
         return instance;
     }
 
     /**
-     * Gets the next id to use and increments it.
+     * Gets the next id to use and increments it or an unused id.
      *
      * @return The next id to use.
      */
     public int getNextId() {
+        if (!this.unusedMapIds.isEmpty()) {
+            return this.unusedMapIds.removeFirst().id();
+        }
         return this.nextId++;
     }
 
@@ -67,7 +86,7 @@ public class MinecraftImageManager {
      * @return The list of unused MapIdComponent.
      */
     public List<MinecraftImage> getImages() {
-        return this.MinecraftImages;
+        return this.minecraftImages;
     }
 
     /**
@@ -77,7 +96,7 @@ public class MinecraftImageManager {
      * @return The ImageMinecraft with the given id.
      */
     public MinecraftImage getMapImageById(int id) {
-        for (MinecraftImage image : this.MinecraftImages) {
+        for (MinecraftImage image : this.minecraftImages) {
             if (image.getId() == id) {
                 return image;
             }
@@ -86,26 +105,34 @@ public class MinecraftImageManager {
     }
 
     /**
+     * Gets a list of ImageMinecraft by the creator's UUID.
+     *
+     * @param playerId The UUID of the creator.
+     * @return The list of ImageMinecraft with the given creator's UUID.
+     */
+    public List<MinecraftImage> getImagesByPlayerId(UUID playerId) {
+        List<MinecraftImage> images = new ArrayList<>();
+        for (MinecraftImage image : this.minecraftImages) {
+            if (image.getCreatorId().equals(playerId)) {
+                images.add(image);
+            }
+        }
+        return images;
+    }
+
+    /**
      * Adds an ImageMinecraft to the manager.
      *
      * @param minecraftImage The ImageMinecraft to add.
      */
     public void add(MinecraftImage minecraftImage) {
-        int numberOfMaps = 0;
-        for (MinecraftImage currentMinecraftImage : this.MinecraftImages) {
-            if (currentMinecraftImage.getCreatorId().equals(minecraftImage.getCreatorId())) {
-                numberOfMaps++;
-                if (currentMinecraftImage.getImage().getName().equals(minecraftImage.getImage().getName())) {
-                    throw new IllegalArgumentException("An image with the same name already exists");
-                }
+        for (MinecraftImage image : this.getImagesByPlayerId(minecraftImage.getCreatorId())) {
+            if (image.getImage().getName().equals(minecraftImage.getImage().getName())) {
+                throw new IllegalArgumentException("There is already an image with the same name");
             }
         }
 
-        if (numberOfMaps >= MAX_MAPS_COUNT_BY_USER) {
-            throw new IllegalArgumentException("User has too many maps, limit is " + MAX_MAPS_COUNT_BY_USER + " with current config");
-        }
-
-        this.MinecraftImages.add(minecraftImage);
+        this.minecraftImages.add(minecraftImage);
     }
 
     /**
@@ -118,7 +145,7 @@ public class MinecraftImageManager {
             this.unusedMapIds.addAll(Arrays.asList(mapIds));
         }
 
-        this.MinecraftImages.remove(minecraftImage);
+        this.minecraftImages.remove(minecraftImage);
     }
 
     /**
@@ -126,13 +153,12 @@ public class MinecraftImageManager {
      *
      * @param filePath The path to the file to serialize the ImageMinecraftManager to.
      */
-    public void serialize(String filePath) {
+    public void serialize(String filePath) throws IOException {
         File file = new File(filePath);
         File parentDir = file.getParentFile();
 
         if (parentDir != null && !parentDir.exists()) {
             if (!parentDir.mkdirs()) {
-                LOGGER.error("Failed to create directories for {}", filePath);
                 return;
             }
         }
@@ -140,12 +166,11 @@ public class MinecraftImageManager {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String json = gson.toJson(this);
 
-        try (FileOutputStream outputStream = new FileOutputStream(file)) {
-            outputStream.write(json.getBytes());
-            LOGGER.info("Serialized {} images to {}", this.MinecraftImages.size(), filePath);
-        } catch (Exception e) {
-            LOGGER.error("Failed to serialize ImageMinecraftManager", e);
-        }
+        FileOutputStream outputStream = new FileOutputStream(file);
+
+        outputStream.write(json.getBytes());
+
+        outputStream.close();
     }
 
     /**
@@ -153,22 +178,18 @@ public class MinecraftImageManager {
      *
      * @return The deserialized ImageMinecraftManager.
      */
-    private static MinecraftImageManager deserialize() {
-        File file = new File(MinecraftImageManager.STORAGE_PATH);
+    private static MinecraftImageManager deserialize(String filePath) throws FileNotFoundException {
+        File file = new File(filePath);
         if (!file.exists()) {
             return MinecraftImageManager.newInstance();
         }
 
         Gson gson = new Gson();
 
-        try {
-            MinecraftImageManager minecraftImageManager = gson.fromJson(new FileReader(file), MinecraftImageManager.class);
-            if (minecraftImageManager != null) {
-                return minecraftImageManager;
-            } else {
-                return MinecraftImageManager.newInstance();
-            }
-        } catch (Exception e) {
+        MinecraftImageManager minecraftImageManager = gson.fromJson(new FileReader(file), MinecraftImageManager.class);
+        if (minecraftImageManager != null) {
+            return minecraftImageManager;
+        } else {
             return MinecraftImageManager.newInstance();
         }
     }

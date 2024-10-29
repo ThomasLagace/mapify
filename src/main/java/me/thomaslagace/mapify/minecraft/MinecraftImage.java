@@ -3,7 +3,6 @@ package me.thomaslagace.mapify.minecraft;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.UUID;
-import me.thomaslagace.mapify.config.Config;
 import me.thomaslagace.mapify.image.ImageUtil;
 import me.thomaslagace.mapify.image.OnDiskImage;
 import net.minecraft.block.MapColor;
@@ -18,16 +17,25 @@ import net.minecraft.world.World;
  * Bridge between an image and the Minecraft maps that it is displayed on.
  */
 public class MinecraftImage {
-    private static final int MAX_MAPS_WIDTH = Config.MAX_MAPS_WIDTH;
-    private static final int MAX_MAPS_HEIGHT = Config.MAX_MAPS_HEIGHT;
-
+    /**
+     * The id of the image minecraft.
+     */
     private final int id;
+    /**
+     * The UUID of the creator of the image.
+     */
     private final UUID creatorId;
+    /**
+     * The image.
+     */
     private final OnDiskImage image;
+    /**
+     * The ids of the Minecraft maps that the image is displayed on.
+     */
     private final MapIdComponent[][] minecraftMapIds;
 
     /**
-     * Creates a new ImageMinecraft.
+     * Creates a new MinecraftImage.
      *
      * @param id The id of the image minecraft.
      * @param creatorId The UUID of the creator of the image.
@@ -35,10 +43,6 @@ public class MinecraftImage {
      * @param minecraftMapIds The ids of the Minecraft maps that the image is displayed on.
      */
     public MinecraftImage(int id, UUID creatorId, OnDiskImage image, MapIdComponent[][] minecraftMapIds) {
-        if (minecraftMapIds.length > MAX_MAPS_HEIGHT || minecraftMapIds[0].length > MAX_MAPS_WIDTH) {
-            throw new IllegalArgumentException("ImageMinecraft is too large with current config");
-        }
-
         this.id = id;
         this.creatorId = creatorId;
         this.image = image;
