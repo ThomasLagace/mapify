@@ -16,7 +16,9 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import me.thomaslagace.mapify.Mapify;
 import me.thomaslagace.mapify.config.Config;
@@ -304,14 +306,13 @@ public final class MapifyCommand {
     public static ItemStack createMapItemStack(MinecraftImage mapImage, ServerCommandSource source) {
         ItemStack paper = new ItemStack(Items.PAPER, 1);
 
-        Text paperName = Text.of(String.format("%s %s x %s", mapImage.getName(), mapImage.getWidth(), mapImage.getHeight()));
+        Text paperName = Text.of(String.format("%s %s x %s", mapImage.getImage().getName(), mapImage.getWidth(), mapImage.getHeight()));
         paper.set(DataComponentTypes.ITEM_NAME, paperName);
 
         String creatorName = Objects.requireNonNull(source.getServer().getPlayerManager().getPlayer(mapImage.getCreatorId())).getName().getString();
 
         LoreComponent loreComponent = new LoreComponent(new ArrayList<>());
-        loreComponent.lines().add(Text.of(mapImage.getName()));
-        loreComponent.lines().add(Text.of(mapImage.getImage().getUrl().toString()));
+        loreComponent.lines().add(Text.of(mapImage.getImage().getName()));
         loreComponent.lines().add(Text.of(Config.CREATED_BY + creatorName));
         paper.set(DataComponentTypes.LORE, loreComponent);
 
@@ -319,7 +320,7 @@ public final class MapifyCommand {
         nbtCompound.putBoolean("mapify", true);
         nbtCompound.putInt("mapify.id", mapImage.getId());
         nbtCompound.putUuid("mapify.creatorId", mapImage.getCreatorId());
-        nbtCompound.putString("mapify.name", mapImage.getName());
+        nbtCompound.putString("mapify.name", mapImage.getImage().getName());
         nbtCompound.putInt("mapify.width", mapImage.getWidth());
         nbtCompound.putInt("mapify.height", mapImage.getHeight());
 
