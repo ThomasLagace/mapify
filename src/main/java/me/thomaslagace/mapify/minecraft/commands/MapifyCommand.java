@@ -208,8 +208,7 @@ public final class MapifyCommand {
 
         MinecraftImage mapImage = null;
         for (MinecraftImage map : allImages) {
-            if (map.getImage().getName().equals(name)
-                && map.getCreatorId().equals(player.getUuid())) {
+            if (map.getImage().getName().equals(name)) {
                 mapImage = map;
                 break;
             }
@@ -241,30 +240,36 @@ public final class MapifyCommand {
         }
 
         ServerPlayerEntity player = (ServerPlayerEntity) source.getEntity();
+        MinecraftImageManager imageManagerInstance = MinecraftImageManager.getInstance();
 
-        List<MinecraftImage> allMapsImage = Mapify.imageManager.getImages();
+        List<MinecraftImage> allPlayerImages = imageManagerInstance.getImagesByPlayerId(player.getUuid());
 
-        int imageCount = 0;
         StringBuilder message = new StringBuilder();
+
         message.append("--------------------\n");
-        for (MinecraftImage map : allMapsImage) {
-            if (map.getCreatorId().equals(player.getUuid())) {
-                message.append(String.format("%d : %s %d x %d", imageCount + 1, map.getName(), map.getWidth(), map.getHeight())).append("\n");
-                imageCount++;
-            }
+
+        for (int i = 0; i < allPlayerImages.size(); i++) {
+            MinecraftImage map = allPlayerImages.get(i);
+            message.append(String.format("%d: %s\n", i + 1, map.getImage().getName()));
         }
 
-        if (imageCount <= 0) {
+        if (allPlayerImages.isEmpty()) {
             message.append(Config.CURRENTLY_NO_IMAGES);
         }
 
-        message.insert(0, String.format(Config.CURRENTLY_IMAGES_COUNT, imageCount, Config.MAX_MAPS_COUNT_BY_USER) + "\n");
+        message.insert(0, String.format(Config.CURRENTLY_IMAGES_COUNT, allPlayerImages.size(), Config.MAX_MAPS_COUNT_BY_USER) + "\n");
 
         source.sendMessage(Text.literal(message.toString()));
 
         return Command.SINGLE_SUCCESS;
     }
 
+    /**
+     * Listener for the /mapify remove command.
+     *
+     * @param context The command context.
+     * @return The result of the command.
+     */
     public static int remove(CommandContext<ServerCommandSource> context) {
         ServerCommandSource source = context.getSource();
         if (!(source.getEntity() instanceof ServerPlayerEntity)) {
@@ -273,15 +278,14 @@ public final class MapifyCommand {
         }
 
         ServerPlayerEntity player = (ServerPlayerEntity) source.getEntity();
+        MinecraftImageManager imageManagerInstance = MinecraftImageManager.getInstance();
 
         String name = StringArgumentType.getString(context, Config.MAPIFY_NAME_ARGUMENT_COMMAND);
 
-        List<MinecraftImage> allMapsImage = Mapify.imageManager.getImages();
+        List<MinecraftImage> allMapsImage = imageManagerInstance.getImagesByPlayerId(player.getUuid());
         for (MinecraftImage map : allMapsImage) {
-            if (map.getName().equals(name)
-                && map.getCreatorId().equals(player.getUuid())) {
-
-                Mapify.imageManager.remove(map);
+            if (map.getImage().getName().equals(name)) {
+                imageManagerInstance.remove(map);
                 source.sendMessage(Text.literal(Config.IMAGE_REMOVED));
                 return Command.SINGLE_SUCCESS;
             }
