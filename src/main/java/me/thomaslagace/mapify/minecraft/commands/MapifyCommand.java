@@ -16,6 +16,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import me.thomaslagace.mapify.Mapify;
 import me.thomaslagace.mapify.config.Config;
@@ -199,14 +200,15 @@ public final class MapifyCommand {
         }
 
         ServerPlayerEntity player = (ServerPlayerEntity) source.getEntity();
+        MinecraftImageManager imageManagerInstance = MinecraftImageManager.getInstance();
 
         String name = StringArgumentType.getString(context, Config.MAPIFY_NAME_ARGUMENT_COMMAND);
 
-        List<MinecraftImage> allMapsImage = Mapify.imageManager.getImages();
+        List<MinecraftImage> allImages = imageManagerInstance.getImagesByPlayerId(player.getUuid());
 
         MinecraftImage mapImage = null;
-        for (MinecraftImage map : allMapsImage) {
-            if (map.getName().equals(name)
+        for (MinecraftImage map : allImages) {
+            if (map.getImage().getName().equals(name)
                 && map.getCreatorId().equals(player.getUuid())) {
                 mapImage = map;
                 break;
