@@ -3,14 +3,17 @@ package me.thomaslagace.mapify.image;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.List;
 import javax.imageio.ImageIO;
 
 /**
  * Utility class for image manipulation.
  */
-public class ImageUtil {
+public final class ImageUtil {
     private ImageUtil() {
         throw new IllegalStateException("Utility class");
     }
@@ -56,13 +59,36 @@ public class ImageUtil {
     /**
      * Gets an image from a URL.
      *
+     * @param stringUrl The URL of the image.
+     * @param allowedDomains The allowed domains for the image.
+     * @param maxSizeBytes The maximum size of the image in bytes.
+     * @return The image from the URL.
+     * @throws IOException If an I/O error occurs.
+     * @throws URISyntaxException If the URL is not valid.
+     */
+    // TODO: Refactor this method.
+    public static BufferedImage getImageFromURL(String stringUrl, List<String> allowedDomains, long maxSizeBytes) throws DomainNotAllowedException, InvalidImageException, IOException, URISyntaxException {
+        URL url = (new URI(stringUrl)).toURL();
+
+        URL[] allowedDomainsUrls = new URL[allowedDomains.length];
+
+        for (int i = 0; i < allowedDomains.length; i++) {
+            allowedDomainsUrls[i] = (new URI(allowedDomains.get(i))).toURL();
+        }
+
+        return ImageUtil.getImageFromURL(url, allowedDomainsUrls, maxSizeBytes);
+    }
+
+    /**
+     * Gets an image from a URL.
+     *
      * @param url The URL of the image.
      * @param allowedDomains The allowed domains for the image.
      * @param maxSizeBytes The maximum size of the image in bytes.
      * @return The image from the URL.
      * @throws IOException If an I/O error occurs.
      */
-    public static BufferedImage getImageFromURL(URL url, URL[] allowedDomains, long maxSizeBytes) throws IOException {
+    public static BufferedImage getImageFromURL(URL url, URL[] allowedDomains, long maxSizeBytes) throws DomainNotAllowedException, InvalidImageException, IOException {
         boolean domainIsAllowed = Arrays.stream(allowedDomains).anyMatch(allowedDomain -> allowedDomain.getHost().equals(url.getHost()))
                                   || allowedDomains.length == 0;
         if (!domainIsAllowed) {

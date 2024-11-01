@@ -87,6 +87,15 @@ public final class MinecraftImageManager {
     }
 
     /**
+     * Gets the list of unused MapIdComponent.
+     *
+     * @return The list of unused MapIdComponent.
+     */
+    public List<MapIdComponent> getUnusedMapIds() {
+        return this.unusedMapIds;
+    }
+
+    /**
      * Gets an ImageMinecraft by its id.
      *
      * @param id The id of the ImageMinecraft to get.

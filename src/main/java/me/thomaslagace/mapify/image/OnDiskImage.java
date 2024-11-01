@@ -26,14 +26,17 @@ public class OnDiskImage {
      *
      * @param name The name of the image.
      * @param path The path to the image.
+     * @param image The image.
      */
-    public OnDiskImage(String name, Path path) {
+    public OnDiskImage(String name, Path path, BufferedImage image) throws IOException {
         if (!OnDiskImage.nameIsValid(name)) {
             throw new IllegalArgumentException("Invalid name");
         }
 
         this.name = name;
         this.absoluteDirectory = path.toAbsolutePath();
+
+        this.storeImageOnDisk(image);
     }
 
     /**

@@ -5,22 +5,26 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
-
-import com.mojang.brigadier.suggestion.Suggestions;
-import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import me.thomaslagace.mapify.config.Config;
-import me.thomaslagace.mapify.image.Image;
-import me.thomaslagace.mapify.minecraft.MinecraftImage;
 import me.thomaslagace.mapify.Mapify;
+import me.thomaslagace.mapify.config.Config;
+import me.thomaslagace.mapify.image.DomainNotAllowedException;
+import me.thomaslagace.mapify.image.ImageUtil;
+import me.thomaslagace.mapify.image.InvalidImageException;
+import me.thomaslagace.mapify.image.OnDiskImage;
+import me.thomaslagace.mapify.minecraft.MinecraftImage;
+import me.thomaslagace.mapify.minecraft.MinecraftImageManager;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.component.DataComponentTypes;
@@ -37,7 +41,11 @@ import net.minecraft.text.Text;
 /**
  * Class that handles the /mapify command.
  */
-public class MapifyCommand {
+public final class MapifyCommand {
+    private MapifyCommand() {
+        throw new IllegalStateException("Utility class");
+    }
+
     /**
      * Registers the /mapify command.
      */
@@ -51,9 +59,9 @@ public class MapifyCommand {
             return builder.buildFuture();
         }
 
-        Mapify.imageManager.getImages().forEach(map -> {
+        MinecraftImageManager.getInstance().getImages().forEach(map -> {
             if (map.getCreatorId().equals(player.getUuid())) {
-                builder.suggest(map.getName());
+                builder.suggest(map.getImage().getName());
             }
         });
         return builder.buildFuture();
@@ -106,31 +114,10 @@ public class MapifyCommand {
             return 0;
         }
 
-        URL url;
-        try {
-            URI uri = new URI(StringArgumentType.getString(context, Config.MAPIFY_URL_ARGUMENT_COMMAND));
-            url = uri.toURL();
-        } catch (MalformedURLException | URISyntaxException e) {
-            source.sendError(Text.literal(Config.INVALID_URL));
-            return 0;
-        }
+        ServerPlayerEntity player = (ServerPlayerEntity) source.getEntity();
+        MinecraftImageManager imageManagerInstance = MinecraftImageManager.getInstance();
 
-        if (!Config.ALLOWED_IMAGE_DOMAINS.isEmpty()
-                && Config.ALLOWED_IMAGE_DOMAINS.stream().noneMatch(url.getHost()::contains)) {
-            source.sendError(Text.literal(Config.INVALID_DOMAIN));
-            return 0;
-        }
-
-        int mapCount = 0;
-        for (MinecraftImage minecraftImage : Mapify.imageManager.getImages()) {
-            if (minecraftImage.getCreatorId().equals(source.getPlayer().getUuid())) {
-                mapCount++;
-                if (minecraftImage.getName().equals(StringArgumentType.getString(context, Config.MAPIFY_NAME_ARGUMENT_COMMAND))) {
-                    source.sendError(Text.literal(Config.IMAGE_ALREADY_EXISTS));
-                    return 0;
-                }
-            }
-        }
+        int mapCount = imageManagerInstance.getImagesByPlayerId(player.getUuid()).size();
 
         if (mapCount >= Config.MAX_MAPS_COUNT_BY_USER) {
             source.sendError(Text.literal(Config.USER_MAP_LIMIT_REACHED));
@@ -139,21 +126,60 @@ public class MapifyCommand {
 
         source.sendMessage(Text.literal(Config.CREATING_IMAGE));
 
-        UUID playerId = source.getPlayer().getUuid();
-        String name = StringArgumentType.getString(context, Config.MAPIFY_NAME_ARGUMENT_COMMAND);
-        int width = IntegerArgumentType.getInteger(context, Config.MAPIFY_WIDTH_ARGUMENT_COMMAND);
-        int height = IntegerArgumentType.getInteger(context, Config.MAPIFY_HEIGHT_ARGUMENT_COMMAND);
+        String urlArg = StringArgumentType.getString(context, Config.MAPIFY_URL_ARGUMENT_COMMAND);
+        String nameArg = StringArgumentType.getString(context, Config.MAPIFY_NAME_ARGUMENT_COMMAND);
+        int widthArg = IntegerArgumentType.getInteger(context, Config.MAPIFY_WIDTH_ARGUMENT_COMMAND);
+        int heightArg = IntegerArgumentType.getInteger(context, Config.MAPIFY_HEIGHT_ARGUMENT_COMMAND);
 
-        Image image = new Image(playerId, name, url);
-        MinecraftImage minecraftImage = new MinecraftImage(Mapify.imageManager.getNextId(), playerId, name, image, width, height);
+        if (widthArg > Config.MAX_MAPS_WIDTH || heightArg > Config.MAX_MAPS_HEIGHT) {
+            source.sendError(Text.literal(Config.IMAGE_IS_TO_LARGE));
+            return 0;
+        }
 
-        minecraftImage.reserveMapIds(source.getWorld());
-        minecraftImage.assignMapStateToWorldAsync(source.getWorld());
+        if (imageManagerInstance.getImagesByPlayerId(player.getUuid()).stream().anyMatch(image -> image.getImage().getName().equals(nameArg))) {
+            source.sendError(Text.literal(Config.IMAGE_ALREADY_EXISTS));
+            return 0;
+        }
 
-        Mapify.imageManager.add(minecraftImage);
+        BufferedImage image;
+        try {
+            image = ImageUtil.getImageFromURL(urlArg, Config.ALLOWED_IMAGE_DOMAINS, Config.MAX_IMAGE_SIZE);
+        } catch (InvalidImageException e) {
+            source.sendError(Text.literal(Config.URL_IS_NOT_AN_IMAGE));
+            return 0;
+        } catch (DomainNotAllowedException e) {
+            source.sendError(Text.literal(Config.INVALID_DOMAIN));
+            return 0;
+        } catch (IOException e) {
+            source.sendError(Text.literal(Config.ERROR_MESSAGE));
+            return 0;
+        } catch (URISyntaxException e) {
+            source.sendError(Text.literal(Config.INVALID_URL));
+            return 0;
+        }
+
+        OnDiskImage onDiskImage;
+        try {
+            Path path = Paths.get(Config.STORAGE_PATH + "/" + player.getUuid());
+            onDiskImage = new OnDiskImage(nameArg, path, image);
+        } catch (IOException e) {
+            source.sendError(Text.literal(Config.ERROR_MESSAGE));
+            return 0;
+        }
+
+        MinecraftImage minecraftImage = new MinecraftImage(imageManagerInstance.getNextId(), player.getUuid(), onDiskImage, widthArg, heightArg);
+
+        minecraftImage.reserveMapIds(source.getWorld(), imageManagerInstance.getUnusedMapIds());
+        try {
+            minecraftImage.assignMapStateToWorld(source.getWorld());
+        } catch (IOException e) {
+            source.sendError(Text.literal(Config.ERROR_MESSAGE));
+            return 0;
+        }
+
+        imageManagerInstance.add(minecraftImage);
         source.sendMessage(Text.literal(Config.IMAGE_CREATED));
 
-        ServerPlayerEntity player = (ServerPlayerEntity) source.getEntity();
         player.getInventory().insertStack(createMapItemStack(minecraftImage, source));
 
         return Command.SINGLE_SUCCESS;

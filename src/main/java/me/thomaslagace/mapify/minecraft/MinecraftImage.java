@@ -51,6 +51,19 @@ public class MinecraftImage {
     }
 
     /**
+     * Creates a new MinecraftImage.
+     *
+     * @param id The id of the image minecraft.
+     * @param creatorId The UUID of the creator of the image.
+     * @param image The image.
+     * @param width The width of the minecraft map image.
+     * @param height The height of the minecraft map image.
+     */
+    public MinecraftImage(int id, UUID creatorId, OnDiskImage image, int width, int height) {
+        this(id, creatorId, image, new MapIdComponent[height][width]);
+    }
+
+    /**
      * Gets the id of the minecraft image.
      *
      * @return The id of the minecraft image.
