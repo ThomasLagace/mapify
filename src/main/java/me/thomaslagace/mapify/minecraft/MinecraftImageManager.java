@@ -69,14 +69,11 @@ public final class MinecraftImageManager {
     }
 
     /**
-     * Gets the next id to use and increments it or an unused id.
+     * Gets the next id to use and increments.
      *
      * @return The next id to use.
      */
     public int getNextId() {
-        if (!this.unusedMapIds.isEmpty()) {
-            return this.unusedMapIds.removeFirst().id();
-        }
         return this.nextId++;
     }
 

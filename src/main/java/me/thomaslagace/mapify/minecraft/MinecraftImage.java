@@ -2,6 +2,7 @@ package me.thomaslagace.mapify.minecraft;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 import me.thomaslagace.mapify.image.ImageUtil;
 import me.thomaslagace.mapify.image.OnDiskImage;
@@ -107,10 +108,16 @@ public class MinecraftImage {
      * Reserves map ids in the world.
      *
      * @param world The world to reserve map ids in.
+     * @param unusedMapIds The list of unused MapIdComponent.
      */
-    public void reserveMapIds(World world) {
+    // TODO: Refactor this method to not use unusedMapIds directly.
+    public void reserveMapIds(World world, List<MapIdComponent> unusedMapIds) {
         for (int y = 0; y < this.getHeight(); y++) {
             for (int x = 0; x < this.getWidth(); x++) {
+                if (!unusedMapIds.isEmpty()) {
+                    this.minecraftMapIds[y][x] = unusedMapIds.removeFirst();
+                    continue;
+                }
                 this.minecraftMapIds[y][x] = world.increaseAndGetMapId();
             }
         }
