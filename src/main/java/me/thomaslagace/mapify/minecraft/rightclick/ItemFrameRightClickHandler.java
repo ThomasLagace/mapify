@@ -1,9 +1,9 @@
 package me.thomaslagace.mapify.minecraft.rightclick;
 
 import java.util.List;
-import me.thomaslagace.mapify.Mapify;
 import me.thomaslagace.mapify.config.Config;
 import me.thomaslagace.mapify.minecraft.MinecraftImage;
+import me.thomaslagace.mapify.minecraft.MinecraftImageManager;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
@@ -23,11 +23,31 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-public class ItemFrameRightClickHandler {
+/**
+ * Classe that handles right-clicking on item frames.
+ */
+public final class ItemFrameRightClickHandler {
+    private ItemFrameRightClickHandler() {
+        throw new IllegalStateException("Utility class");
+    }
+
+    /**
+     * Registers the item frame right-click handler.
+     */
     public static void register() {
         UseEntityCallback.EVENT.register(ItemFrameRightClickHandler::run);
     }
 
+    /**
+     * Handles the right-click on an item frame.
+     *
+     * @param playerEntity The player that right-clicked.
+     * @param world The world.
+     * @param hand The hand that the player used.
+     * @param entity The entity that was right-clicked.
+     * @param entityHitResult The entity hit result.
+     * @return The action result.
+     */
     private static ActionResult run(PlayerEntity playerEntity, World world, Hand hand, Entity entity, @Nullable EntityHitResult entityHitResult) {
         if (!(entity instanceof ItemFrameEntity itemFrame)) {
             return ActionResult.PASS;
@@ -50,7 +70,8 @@ public class ItemFrameRightClickHandler {
             return ActionResult.FAIL;
         }
 
-        MinecraftImage minecraftImage = Mapify.imageManager.getMapImageById(usedItemNbtCompound.getInt("mapify.id"));
+        MinecraftImageManager imageManagerInstance = MinecraftImageManager.getInstance();
+        MinecraftImage minecraftImage = imageManagerInstance.getMapImageById(usedItemNbtCompound.getInt("mapify.id"));
 
         if (minecraftImage == null) {
             playerEntity.sendMessage(Text.of(Config.MAP_NOT_FOUND), true);

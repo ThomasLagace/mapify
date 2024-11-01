@@ -70,9 +70,9 @@ public final class ImageUtil {
     public static BufferedImage getImageFromURL(String stringUrl, List<String> allowedDomains, long maxSizeBytes) throws DomainNotAllowedException, InvalidImageException, IOException, URISyntaxException {
         URL url = (new URI(stringUrl)).toURL();
 
-        URL[] allowedDomainsUrls = new URL[allowedDomains.length];
+        URL[] allowedDomainsUrls = new URL[allowedDomains.size()];
 
-        for (int i = 0; i < allowedDomains.length; i++) {
+        for (int i = 0; i < allowedDomains.size(); i++) {
             allowedDomainsUrls[i] = (new URI(allowedDomains.get(i))).toURL();
         }
 
