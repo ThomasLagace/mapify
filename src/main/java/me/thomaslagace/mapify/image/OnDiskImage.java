@@ -111,4 +111,11 @@ public class OnDiskImage {
         String regex = "[a-zA-Z0-9_]+";
         return Pattern.compile(regex).matcher(name).find();
     }
+
+    /**
+     * Deletes the image from disk.
+     */
+    public void deleteImage() {
+        this.getFileImage().delete();
+    }
 }

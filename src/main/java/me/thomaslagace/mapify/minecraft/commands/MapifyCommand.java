@@ -57,11 +57,10 @@ public final class MapifyCommand {
             return builder.buildFuture();
         }
 
-        MinecraftImageManager.getInstance().getImages().forEach(map -> {
-            if (map.getCreatorId().equals(player.getUuid())) {
-                builder.suggest(map.getImage().getName());
-            }
-        });
+        for (MinecraftImage map : MinecraftImageManager.getInstance().getImagesByPlayerId(player.getUuid())) {
+            builder.suggest(map.getImage().getName());
+        }
+
         return builder.buildFuture();
     }
 

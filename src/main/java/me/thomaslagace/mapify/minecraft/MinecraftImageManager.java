@@ -151,6 +151,7 @@ public final class MinecraftImageManager {
             this.unusedMapIds.addAll(Arrays.asList(mapIds));
         }
 
+        minecraftImage.deleteImage();
         this.minecraftImages.remove(minecraftImage);
     }
 

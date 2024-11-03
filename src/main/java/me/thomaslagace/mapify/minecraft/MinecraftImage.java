@@ -198,4 +198,11 @@ public class MinecraftImage {
 
         return maps;
     }
+
+    /**
+     * Deletes the image from disk.
+     */
+    public void deleteImage() {
+        this.image.deleteImage();
+    }
 }
