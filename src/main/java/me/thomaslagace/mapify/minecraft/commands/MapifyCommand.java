@@ -1,27 +1,28 @@
-package me.thomaslagace.mapify.events.commands;
+package me.thomaslagace.mapify.minecraft.commands;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import java.net.MalformedURLException;
-import java.net.URI;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.net.URISyntaxException;
-import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-
-import com.mojang.brigadier.suggestion.SuggestionProvider;
-import com.mojang.brigadier.suggestion.Suggestions;
-import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import me.thomaslagace.mapify.Config;
-import me.thomaslagace.mapify.Image;
-import me.thomaslagace.mapify.ImageMinecraft;
-import me.thomaslagace.mapify.Mapify;
+import me.thomaslagace.mapify.config.Config;
+import me.thomaslagace.mapify.image.DomainNotAllowedException;
+import me.thomaslagace.mapify.image.ImageUtil;
+import me.thomaslagace.mapify.image.InvalidImageException;
+import me.thomaslagace.mapify.image.OnDiskImage;
+import me.thomaslagace.mapify.minecraft.MinecraftImage;
+import me.thomaslagace.mapify.minecraft.MinecraftImageManager;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.component.DataComponentTypes;
@@ -38,7 +39,11 @@ import net.minecraft.text.Text;
 /**
  * Class that handles the /mapify command.
  */
-public class MapifyCommand {
+public final class MapifyCommand {
+    private MapifyCommand() {
+        throw new IllegalStateException("Utility class");
+    }
+
     /**
      * Registers the /mapify command.
      */
@@ -52,11 +57,10 @@ public class MapifyCommand {
             return builder.buildFuture();
         }
 
-        Mapify.imageManager.getImages().forEach(map -> {
-            if (map.getCreatorId().equals(player.getUuid())) {
-                builder.suggest(map.getName());
-            }
-        });
+        for (MinecraftImage map : MinecraftImageManager.getInstance().getImagesByPlayerId(player.getUuid())) {
+            builder.suggest(map.getImage().getName());
+        }
+
         return builder.buildFuture();
     }
 
@@ -68,8 +72,8 @@ public class MapifyCommand {
      * @param environment The command registration environment.
      */
     private static void listener(CommandDispatcher<ServerCommandSource> dispatcher,
-        CommandRegistryAccess registryAccess,
-        CommandManager.RegistrationEnvironment environment) {
+                                 CommandRegistryAccess registryAccess,
+                                 CommandManager.RegistrationEnvironment environment) {
 
         dispatcher.register(CommandManager.literal(Config.MAPIFY_ROOT_COMMAND)
                 // /mapify create <width> <height> <name> <url>
@@ -107,31 +111,10 @@ public class MapifyCommand {
             return 0;
         }
 
-        URL url;
-        try {
-            URI uri = new URI(StringArgumentType.getString(context, Config.MAPIFY_URL_ARGUMENT_COMMAND));
-            url = uri.toURL();
-        } catch (MalformedURLException | URISyntaxException e) {
-            source.sendError(Text.literal(Config.INVALID_URL));
-            return 0;
-        }
+        ServerPlayerEntity player = (ServerPlayerEntity) source.getEntity();
+        MinecraftImageManager imageManagerInstance = MinecraftImageManager.getInstance();
 
-        if (!Config.ALLOWED_IMAGE_DOMAINS.isEmpty()
-                && Config.ALLOWED_IMAGE_DOMAINS.stream().noneMatch(url.getHost()::contains)) {
-            source.sendError(Text.literal(Config.INVALID_DOMAIN));
-            return 0;
-        }
-
-        int mapCount = 0;
-        for (ImageMinecraft imageMinecraft : Mapify.imageManager.getImages()) {
-            if (imageMinecraft.getCreatorId().equals(source.getPlayer().getUuid())) {
-                mapCount++;
-                if (imageMinecraft.getName().equals(StringArgumentType.getString(context, Config.MAPIFY_NAME_ARGUMENT_COMMAND))) {
-                    source.sendError(Text.literal(Config.IMAGE_ALREADY_EXISTS));
-                    return 0;
-                }
-            }
-        }
+        int mapCount = imageManagerInstance.getImagesByPlayerId(player.getUuid()).size();
 
         if (mapCount >= Config.MAX_MAPS_COUNT_BY_USER) {
             source.sendError(Text.literal(Config.USER_MAP_LIMIT_REACHED));
@@ -140,22 +123,64 @@ public class MapifyCommand {
 
         source.sendMessage(Text.literal(Config.CREATING_IMAGE));
 
-        UUID playerId = source.getPlayer().getUuid();
-        String name = StringArgumentType.getString(context, Config.MAPIFY_NAME_ARGUMENT_COMMAND);
-        int width = IntegerArgumentType.getInteger(context, Config.MAPIFY_WIDTH_ARGUMENT_COMMAND);
-        int height = IntegerArgumentType.getInteger(context, Config.MAPIFY_HEIGHT_ARGUMENT_COMMAND);
+        String urlArg = StringArgumentType.getString(context, Config.MAPIFY_URL_ARGUMENT_COMMAND);
+        String nameArg = StringArgumentType.getString(context, Config.MAPIFY_NAME_ARGUMENT_COMMAND);
+        int widthArg = IntegerArgumentType.getInteger(context, Config.MAPIFY_WIDTH_ARGUMENT_COMMAND);
+        int heightArg = IntegerArgumentType.getInteger(context, Config.MAPIFY_HEIGHT_ARGUMENT_COMMAND);
 
-        Image image = new Image(playerId, name, url);
-        ImageMinecraft imageMinecraft = new ImageMinecraft(Mapify.imageManager.getNextId(), playerId, name, image, width, height);
+        if (widthArg > Config.MAX_MAPS_WIDTH || heightArg > Config.MAX_MAPS_HEIGHT) {
+            source.sendError(Text.literal(Config.IMAGE_IS_TO_LARGE));
+            return 0;
+        }
 
-        imageMinecraft.reserveMapIds(source.getWorld());
-        imageMinecraft.assignMapStateToWorldAsync(source.getWorld());
+        if (imageManagerInstance.getImagesByPlayerId(player.getUuid()).stream().anyMatch(image -> image.getImage().getName().equals(nameArg))) {
+            source.sendError(Text.literal(Config.IMAGE_ALREADY_EXISTS));
+            return 0;
+        }
 
-        Mapify.imageManager.add(imageMinecraft);
+        BufferedImage image;
+        try {
+            image = ImageUtil.getImageFromURL(urlArg, Config.ALLOWED_IMAGE_DOMAINS, Config.MAX_IMAGE_SIZE);
+        } catch (InvalidImageException e) {
+            source.sendError(Text.literal(Config.URL_IS_NOT_AN_IMAGE));
+            return 0;
+        } catch (DomainNotAllowedException e) {
+            source.sendError(Text.literal(Config.INVALID_DOMAIN));
+            return 0;
+        } catch (IOException e) {
+            source.sendError(Text.literal(Config.ERROR_MESSAGE));
+            return 0;
+        } catch (URISyntaxException e) {
+            source.sendError(Text.literal(Config.INVALID_URL));
+            return 0;
+        }
+
+        OnDiskImage onDiskImage;
+        try {
+            Path path = Paths.get(Config.STORAGE_PATH + "images/" + player.getUuid());
+            onDiskImage = new OnDiskImage(nameArg, path, image);
+        } catch (IOException e) {
+            source.sendError(Text.literal(Config.ERROR_MESSAGE));
+            return 0;
+        } catch (IllegalArgumentException e) {
+            source.sendError(Text.literal(Config.INVALID_IMAGE_NAME));
+            return 0;
+        }
+
+        MinecraftImage minecraftImage = new MinecraftImage(imageManagerInstance.getNextId(), player.getUuid(), onDiskImage, widthArg, heightArg);
+
+        minecraftImage.reserveMapIds(source.getWorld(), imageManagerInstance.getUnusedMapIds());
+        try {
+            minecraftImage.assignMapStateToWorld(source.getWorld());
+        } catch (IOException e) {
+            source.sendError(Text.literal(Config.ERROR_MESSAGE));
+            return 0;
+        }
+
+        imageManagerInstance.add(minecraftImage);
         source.sendMessage(Text.literal(Config.IMAGE_CREATED));
 
-        ServerPlayerEntity player = (ServerPlayerEntity) source.getEntity();
-        player.getInventory().insertStack(createMapItemStack(imageMinecraft, source));
+        player.getInventory().insertStack(createMapItemStack(minecraftImage, source));
 
         return Command.SINGLE_SUCCESS;
     }
@@ -174,15 +199,15 @@ public class MapifyCommand {
         }
 
         ServerPlayerEntity player = (ServerPlayerEntity) source.getEntity();
+        MinecraftImageManager imageManagerInstance = MinecraftImageManager.getInstance();
 
         String name = StringArgumentType.getString(context, Config.MAPIFY_NAME_ARGUMENT_COMMAND);
 
-        List<ImageMinecraft> allMapsImage = Mapify.imageManager.getImages();
+        List<MinecraftImage> allImages = imageManagerInstance.getImagesByPlayerId(player.getUuid());
 
-        ImageMinecraft mapImage = null;
-        for (ImageMinecraft map : allMapsImage) {
-            if (map.getName().equals(name)
-                && map.getCreatorId().equals(player.getUuid())) {
+        MinecraftImage mapImage = null;
+        for (MinecraftImage map : allImages) {
+            if (map.getImage().getName().equals(name)) {
                 mapImage = map;
                 break;
             }
@@ -214,30 +239,36 @@ public class MapifyCommand {
         }
 
         ServerPlayerEntity player = (ServerPlayerEntity) source.getEntity();
+        MinecraftImageManager imageManagerInstance = MinecraftImageManager.getInstance();
 
-        List<ImageMinecraft> allMapsImage = Mapify.imageManager.getImages();
+        List<MinecraftImage> allPlayerImages = imageManagerInstance.getImagesByPlayerId(player.getUuid());
 
-        int imageCount = 0;
         StringBuilder message = new StringBuilder();
+
         message.append("--------------------\n");
-        for (ImageMinecraft map : allMapsImage) {
-            if (map.getCreatorId().equals(player.getUuid())) {
-                message.append(String.format("%d : %s %d x %d", imageCount + 1, map.getName(), map.getWidth(), map.getHeight())).append("\n");
-                imageCount++;
-            }
+
+        for (int i = 0; i < allPlayerImages.size(); i++) {
+            MinecraftImage map = allPlayerImages.get(i);
+            message.append(String.format("%d: %s\n", i + 1, map.getImage().getName()));
         }
 
-        if (imageCount <= 0) {
+        if (allPlayerImages.isEmpty()) {
             message.append(Config.CURRENTLY_NO_IMAGES);
         }
 
-        message.insert(0, String.format(Config.CURRENTLY_IMAGES_COUNT, imageCount, Config.MAX_MAPS_COUNT_BY_USER) + "\n");
+        message.insert(0, String.format(Config.CURRENTLY_IMAGES_COUNT, allPlayerImages.size(), Config.MAX_MAPS_COUNT_BY_USER) + "\n");
 
         source.sendMessage(Text.literal(message.toString()));
 
         return Command.SINGLE_SUCCESS;
     }
 
+    /**
+     * Listener for the /mapify remove command.
+     *
+     * @param context The command context.
+     * @return The result of the command.
+     */
     public static int remove(CommandContext<ServerCommandSource> context) {
         ServerCommandSource source = context.getSource();
         if (!(source.getEntity() instanceof ServerPlayerEntity)) {
@@ -246,15 +277,14 @@ public class MapifyCommand {
         }
 
         ServerPlayerEntity player = (ServerPlayerEntity) source.getEntity();
+        MinecraftImageManager imageManagerInstance = MinecraftImageManager.getInstance();
 
         String name = StringArgumentType.getString(context, Config.MAPIFY_NAME_ARGUMENT_COMMAND);
 
-        List<ImageMinecraft> allMapsImage = Mapify.imageManager.getImages();
-        for (ImageMinecraft map : allMapsImage) {
-            if (map.getName().equals(name)
-                && map.getCreatorId().equals(player.getUuid())) {
-
-                Mapify.imageManager.remove(map);
+        List<MinecraftImage> allMapsImage = imageManagerInstance.getImagesByPlayerId(player.getUuid());
+        for (MinecraftImage map : allMapsImage) {
+            if (map.getImage().getName().equals(name)) {
+                imageManagerInstance.remove(map);
                 source.sendMessage(Text.literal(Config.IMAGE_REMOVED));
                 return Command.SINGLE_SUCCESS;
             }
@@ -270,17 +300,16 @@ public class MapifyCommand {
      * @param mapImage The image minecraft.
      * @return The map paper item stack.
      */
-    public static ItemStack createMapItemStack(ImageMinecraft mapImage, ServerCommandSource source) {
+    public static ItemStack createMapItemStack(MinecraftImage mapImage, ServerCommandSource source) {
         ItemStack paper = new ItemStack(Items.PAPER, 1);
 
-        Text paperName = Text.of(String.format("%s %s x %s", mapImage.getName(), mapImage.getWidth(), mapImage.getHeight()));
+        Text paperName = Text.of(String.format("%s %s x %s", mapImage.getImage().getName(), mapImage.getWidth(), mapImage.getHeight()));
         paper.set(DataComponentTypes.ITEM_NAME, paperName);
 
         String creatorName = Objects.requireNonNull(source.getServer().getPlayerManager().getPlayer(mapImage.getCreatorId())).getName().getString();
 
         LoreComponent loreComponent = new LoreComponent(new ArrayList<>());
-        loreComponent.lines().add(Text.of(mapImage.getName()));
-        loreComponent.lines().add(Text.of(mapImage.getImage().getUrl().toString()));
+        loreComponent.lines().add(Text.of(mapImage.getImage().getName()));
         loreComponent.lines().add(Text.of(Config.CREATED_BY + creatorName));
         paper.set(DataComponentTypes.LORE, loreComponent);
 
@@ -288,7 +317,7 @@ public class MapifyCommand {
         nbtCompound.putBoolean("mapify", true);
         nbtCompound.putInt("mapify.id", mapImage.getId());
         nbtCompound.putUuid("mapify.creatorId", mapImage.getCreatorId());
-        nbtCompound.putString("mapify.name", mapImage.getName());
+        nbtCompound.putString("mapify.name", mapImage.getImage().getName());
         nbtCompound.putInt("mapify.width", mapImage.getWidth());
         nbtCompound.putInt("mapify.height", mapImage.getHeight());
 
