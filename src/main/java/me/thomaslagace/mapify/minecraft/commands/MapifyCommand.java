@@ -158,10 +158,13 @@ public final class MapifyCommand {
 
         OnDiskImage onDiskImage;
         try {
-            Path path = Paths.get(Config.STORAGE_PATH + "/" + player.getUuid());
+            Path path = Paths.get(Config.STORAGE_PATH + "images/" + player.getUuid());
             onDiskImage = new OnDiskImage(nameArg, path, image);
         } catch (IOException e) {
             source.sendError(Text.literal(Config.ERROR_MESSAGE));
+            return 0;
+        } catch (IllegalArgumentException e) {
+            source.sendError(Text.literal(Config.INVALID_IMAGE_NAME));
             return 0;
         }
 

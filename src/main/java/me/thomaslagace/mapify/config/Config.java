@@ -12,6 +12,7 @@ public class Config {
     public static final int MAX_MAPS_HEIGHT = 10;
     public static final String IMAGE_STORAGE_PATH = "mapify/images/";
     public static final String STORAGE_PATH = "mapify/";
+    public static final String INVALID_IMAGE_NAME = "Invalid image name";
     public static List<String> ALLOWED_IMAGE_DOMAINS = List.of();
     public static final String ERROR_MESSAGE = "An error occurred";
     public static final String URL_IS_NOT_AN_IMAGE = "The URL is not an image";

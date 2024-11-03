@@ -160,12 +160,10 @@ public final class MinecraftImageManager {
      * @param filePath The path to the file to serialize the ImageMinecraftManager to.
      */
     public void serialize(String filePath) throws IOException {
-        File file = new File(filePath);
-        File parentDir = file.getParentFile();
-
-        if (parentDir != null && !parentDir.exists()) {
-            if (!parentDir.mkdirs()) {
-                return;
+        File file = new File(filePath + "mapify.json");
+        if (!file.getParentFile().exists()) {
+            if (!file.getParentFile().mkdirs()) {
+                throw new IOException("Failed to create the directory for serialisation: " + file.getParentFile());
             }
         }
 

@@ -63,7 +63,7 @@ public class OnDiskImage {
      * @return The full image path.
      */
     public Path getFullImagePath() {
-        return Paths.get(this.absoluteDirectory + this.name + this.getImageExtension());
+        return Paths.get(this.absoluteDirectory + "/" + this.name + "." + this.getImageExtension());
     }
 
     /**
@@ -82,6 +82,12 @@ public class OnDiskImage {
      * @throws IOException If an I/O error occurs.
      */
     public void storeImageOnDisk(BufferedImage image) throws IOException {
+        if (!this.getFileImage().getParentFile().exists()) {
+            if (this.getFileImage().getParentFile().mkdirs()) {
+                throw new IOException("Failed to create parent directories for file: " + this.getFileImage().getAbsolutePath());
+            }
+        }
+
         ImageIO.write(image, this.getImageExtension(), this.getFileImage());
     }
 
@@ -103,6 +109,6 @@ public class OnDiskImage {
      */
     public static boolean nameIsValid(String name) {
         String regex = "[a-zA-Z0-9_]+";
-        return !Pattern.compile(regex).matcher(name).find();
+        return Pattern.compile(regex).matcher(name).find();
     }
 }

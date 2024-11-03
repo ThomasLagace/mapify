@@ -88,7 +88,7 @@ public final class ImageUtil {
      * @return The image from the URL.
      * @throws IOException If an I/O error occurs.
      */
-    public static BufferedImage getImageFromURL(URL url, URL[] allowedDomains, long maxSizeBytes) throws DomainNotAllowedException, InvalidImageException, IOException {
+    public static BufferedImage getImageFromURL(URL url, URL[] allowedDomains, long maxSizeBytes) throws IOException, URISyntaxException {
         boolean domainIsAllowed = Arrays.stream(allowedDomains).anyMatch(allowedDomain -> allowedDomain.getHost().equals(url.getHost()))
                                   || allowedDomains.length == 0;
         if (!domainIsAllowed) {
@@ -110,8 +110,9 @@ public final class ImageUtil {
      * @return True if the URL is an image and is smaller than the specified size, false otherwise.
      * @throws IOException If an I/O error occurs.
      */
-    public static boolean urlIsImage(URL url, long maxSizeBytes) throws IOException {
+    public static boolean urlIsImage(URL url, long maxSizeBytes) throws IOException, URISyntaxException {
         HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
+        httpConnection.setInstanceFollowRedirects(true);
         httpConnection.setRequestMethod("HEAD");
         httpConnection.connect();
 
@@ -120,7 +121,8 @@ public final class ImageUtil {
 
         httpConnection.disconnect();
 
-        return contentType.startsWith("image/")
+        return contentType != null
+               && contentType.startsWith("image/")
                && contentLength > 0
                && contentLength <= maxSizeBytes;
     }
