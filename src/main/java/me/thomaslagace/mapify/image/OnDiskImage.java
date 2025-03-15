@@ -26,7 +26,6 @@ public class OnDiskImage extends TemporaryInMemoryImage {
         }
     }
 
-    @Override
     public void setImage(BufferedImage image) throws IOException {
         ImageIO.write(image, "png", this.file);
     }

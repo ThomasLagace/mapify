@@ -14,6 +14,5 @@ public abstract class TemporaryInMemoryImage {
         return this.name;
     }
 
-    public abstract BufferedImage getImage();
-    public abstract void setImage(BufferedImage image) throws IOException;
+    public abstract BufferedImage getImage() throws IOException;
 }
