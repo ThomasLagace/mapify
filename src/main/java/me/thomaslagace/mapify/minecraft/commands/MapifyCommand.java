@@ -24,6 +24,7 @@ import me.thomaslagace.mapify.image.InvalidImageException;
 import me.thomaslagace.mapify.image.OnDiskImage;
 import me.thomaslagace.mapify.minecraft.MinecraftImage;
 import me.thomaslagace.mapify.minecraft.MinecraftImageManager;
+import me.thomaslagace.mapify.ModRegisterable;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.component.DataComponentTypes;
@@ -40,15 +41,11 @@ import net.minecraft.text.Text;
 /**
  * Class that handles the /mapify command.
  */
-public final class MapifyCommand {
-    private MapifyCommand() {
-        throw new IllegalStateException("Utility class");
-    }
-
+public final class MapifyCommand implements ModRegisterable {
     /**
      * Registers the /mapify command.
      */
-    public static void register() {
+    public void register() {
         CommandRegistrationCallback.EVENT.register(MapifyCommand::listener);
     }
 

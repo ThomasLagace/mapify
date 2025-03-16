@@ -9,6 +9,8 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 /**
  * The main class of the mapify mod.
  */
@@ -26,8 +28,12 @@ public class Mapify implements ModInitializer {
     public void onInitialize() {
         LOGGER.info("Hello Fabric world!");
 
-        MapifyCommand.register();
-        ItemFrameRightClickHandler.register();
+        List<ModRegisterable> registerables = List.of(
+            new MapifyCommand(),
+            new ItemFrameRightClickHandler()
+        );
+
+        registerables.forEach(ModRegisterable::register);
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             this.onDisable();

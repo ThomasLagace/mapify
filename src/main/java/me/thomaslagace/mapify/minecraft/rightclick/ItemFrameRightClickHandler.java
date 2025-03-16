@@ -4,6 +4,7 @@ import java.util.List;
 import me.thomaslagace.mapify.config.Config;
 import me.thomaslagace.mapify.minecraft.MinecraftImage;
 import me.thomaslagace.mapify.minecraft.MinecraftImageManager;
+import me.thomaslagace.mapify.ModRegisterable;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
@@ -26,15 +27,11 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Classe that handles right-clicking on item frames.
  */
-public final class ItemFrameRightClickHandler {
-    private ItemFrameRightClickHandler() {
-        throw new IllegalStateException("Utility class");
-    }
-
+public final class ItemFrameRightClickHandler implements ModRegisterable {
     /**
      * Registers the item frame right-click handler.
      */
-    public static void register() {
+    public void register() {
         UseEntityCallback.EVENT.register(ItemFrameRightClickHandler::run);
     }
 
