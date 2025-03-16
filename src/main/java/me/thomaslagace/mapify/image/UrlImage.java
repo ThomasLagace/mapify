@@ -14,6 +14,10 @@ public class UrlImage extends TemporaryInMemoryImage {
         this.url = url;
     }
 
+    public URL getUrl() {
+        return this.url;
+    }
+
     @Override
     public BufferedImage getImage() throws IOException {
         return ImageIO.read(this.url);
