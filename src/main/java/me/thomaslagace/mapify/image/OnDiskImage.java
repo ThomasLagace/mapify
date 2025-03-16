@@ -13,6 +13,10 @@ public class OnDiskImage extends TemporaryInMemoryImage {
         this.file = file;
     }
 
+    public File getFile() {
+        return this.file;
+    }
+
     @Override
     public BufferedImage getImage() {
         if (!this.file.exists()) {
