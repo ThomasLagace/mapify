@@ -8,6 +8,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
@@ -155,15 +156,14 @@ public final class MapifyCommand {
             return 0;
         }
 
-        OnDiskImage onDiskImage;
+        Path path = Paths.get(Config.STORAGE_PATH + "images/" + player.getUuid());
+        File file = path.toFile();
+        OnDiskImage onDiskImage = new OnDiskImage(nameArg, file);
+
         try {
-            Path path = Paths.get(Config.STORAGE_PATH + "images/" + player.getUuid());
-            onDiskImage = new OnDiskImage(nameArg, path, image);
+            onDiskImage.setImage(image);
         } catch (IOException e) {
             source.sendError(Text.literal(Config.ERROR_MESSAGE));
-            return 0;
-        } catch (IllegalArgumentException e) {
-            source.sendError(Text.literal(Config.INVALID_IMAGE_NAME));
             return 0;
         }
 
