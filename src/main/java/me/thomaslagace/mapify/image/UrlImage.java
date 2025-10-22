@@ -1,16 +1,14 @@
 package me.thomaslagace.mapify.image;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Arrays;
+import javax.imageio.ImageIO;
 
-public class UrlImage extends TemporaryInMemoryImage {
+public class UrlImage implements IImageGetter {
     private final URL url;
 
-    public UrlImage(String name, URL url) {
-        super(name);
+    public UrlImage(URL url) {
         this.url = url;
     }
 

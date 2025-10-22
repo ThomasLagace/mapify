@@ -1,15 +1,14 @@
 package me.thomaslagace.mapify.image;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import javax.imageio.ImageIO;
 
-public class OnDiskImage extends TemporaryInMemoryImage {
+public class OnDiskImageGetter implements IImageGetter {
     private final File file;
 
-    public OnDiskImage(String name, File file) {
-        super(name);
+    public OnDiskImageGetter(File file) {
         this.file = file;
     }
 
@@ -18,16 +17,12 @@ public class OnDiskImage extends TemporaryInMemoryImage {
     }
 
     @Override
-    public BufferedImage getImage() {
+    public BufferedImage getImage() throws IOException {
         if (!this.file.exists()) {
             return null;
         }
 
-        try {
-            return ImageIO.read(this.file);
-        } catch (Exception e) {
-            return null;
-        }
+        return ImageIO.read(this.file);
     }
 
     public void setImage(BufferedImage image) throws IOException {
