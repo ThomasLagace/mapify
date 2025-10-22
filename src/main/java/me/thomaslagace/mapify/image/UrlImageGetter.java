@@ -3,13 +3,14 @@ package me.thomaslagace.mapify.image;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
-import javax.imageio.ImageIO;
 
-public class UrlImage implements IImageGetter {
+public class UrlImageGetter implements IImageGetter {
     private final URL url;
+    private final long maxSizeBytes;
 
-    public UrlImage(URL url) {
+    public UrlImageGetter(URL url, long maxSizeBytes) {
         this.url = url;
+        this.maxSizeBytes = maxSizeBytes;
     }
 
     public URL getUrl() {
@@ -18,6 +19,6 @@ public class UrlImage implements IImageGetter {
 
     @Override
     public BufferedImage getImage() throws IOException {
-        return ImageIO.read(this.url);
+        return ImageUtil.getImageFromURL(this.url, this.maxSizeBytes);
     }
 }
