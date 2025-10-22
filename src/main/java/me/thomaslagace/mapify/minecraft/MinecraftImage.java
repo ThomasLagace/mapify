@@ -1,27 +1,39 @@
 package me.thomaslagace.mapify.minecraft;
 
-import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.UUID;
-import me.thomaslagace.mapify.image.ImageUtil;
-import net.minecraft.block.MapColor;
+
+import me.thomaslagace.mapify.image.OnDiskImageGetter;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.MapIdComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.item.map.MapState;
-import net.minecraft.world.World;
 
 /**
  * Bridge between an image and the Minecraft maps that it is displayed on.
  */
 public class MinecraftImage {
+    private final String name;
     private final UUID creatorId;
-    private final MapIdComponent[][] minecraftMapIds;
+    private final OnDiskImageGetter ondiskImageGetter;
+    private MapIdComponent[][] minecraftMapIds;
 
-    public MinecraftImage(UUID creatorId, MapIdComponent[][] minecraftMapIds) {
+    public MinecraftImage(String name, UUID creatorId, OnDiskImageGetter ondiskImageGetter) {
+        this.name = name;
         this.creatorId = creatorId;
+        this.ondiskImageGetter = ondiskImageGetter;
+    }
+
+    public MinecraftImage(String name, UUID creatorId, OnDiskImageGetter onDiskImageGetter, MapIdComponent[][] minecraftMapIds) {
+        this(name, creatorId, onDiskImageGetter);
         this.minecraftMapIds = minecraftMapIds;
+    }
+
+    public void assignMapIds(MapIdComponent[][] minecraftMapIds) {
+        this.minecraftMapIds = minecraftMapIds;
+    }
+
+    public String getName() {
+        return name;
     }
 
     /**
@@ -66,6 +78,9 @@ public class MinecraftImage {
      * @return The map item stacks of the maps.
      */
     public ItemStack[][] getMapItemStack() {
+        if (this.minecraftMapIds == null) {
+            return null;
+        }
         ItemStack[][] maps = new ItemStack[this.getHeight()][this.getWidth()];
 
         for (int y = 0; y < this.getHeight(); y++) {

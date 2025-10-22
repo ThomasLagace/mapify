@@ -81,52 +81,6 @@ public final class MinecraftImageManager {
     }
 
     /**
-     * Gets an ImageMinecraft by its id.
-     *
-     * @param id The id of the ImageMinecraft to get.
-     * @return The ImageMinecraft with the given id.
-     */
-    public MinecraftImage getMapImageById(int id) {
-        for (MinecraftImage image : this.minecraftImages) {
-            if (image.getId() == id) {
-                return image;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Gets a list of ImageMinecraft by the creator's UUID.
-     *
-     * @param playerId The UUID of the creator.
-     * @return The list of ImageMinecraft with the given creator's UUID.
-     */
-    public List<MinecraftImage> getImagesByPlayerId(UUID playerId) {
-        List<MinecraftImage> images = new ArrayList<>();
-        for (MinecraftImage image : this.minecraftImages) {
-            if (image.getCreatorId().equals(playerId)) {
-                images.add(image);
-            }
-        }
-        return images;
-    }
-
-    /**
-     * Adds an ImageMinecraft to the manager.
-     *
-     * @param minecraftImage The ImageMinecraft to add.
-     */
-    public void add(MinecraftImage minecraftImage) {
-        for (MinecraftImage image : this.getImagesByPlayerId(minecraftImage.getCreatorId())) {
-            if (image.getImageGetter().getName().equals(minecraftImage.getImageGetter().getName())) {
-                throw new IllegalArgumentException("There is already an image with the same name");
-            }
-        }
-
-        this.minecraftImages.add(minecraftImage);
-    }
-
-    /**
      * Removes an ImageMinecraft from the manager.
      *
      * @param minecraftImage The ImageMinecraft to remove.
