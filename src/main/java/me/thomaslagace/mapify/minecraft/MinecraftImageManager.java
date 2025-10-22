@@ -18,25 +18,10 @@ import net.minecraft.component.type.MapIdComponent;
  * Manages all the Minecraft images in the application.
  */
 public final class MinecraftImageManager {
-    /**
-     * The storage path for the ImageMinecraftManager.
-     */
     private static final String STORAGE_PATH = Config.STORAGE_PATH;
-    /**
-     * The instance of the ImageMinecraftManager.
-     */
     private static MinecraftImageManager instance;
-    /**
-     * The next id to use and the list of ImageMinecraft.
-     */
     private int nextId;
-    /**
-     * List of ImageMinecraft.
-     */
     private final List<MinecraftImage> minecraftImages;
-    /**
-     * The list of unused MapIdComponent.
-     */
     private final List<MapIdComponent> unusedMapIds;
 
     /**
@@ -133,7 +118,7 @@ public final class MinecraftImageManager {
      */
     public void add(MinecraftImage minecraftImage) {
         for (MinecraftImage image : this.getImagesByPlayerId(minecraftImage.getCreatorId())) {
-            if (image.getImage().getName().equals(minecraftImage.getImage().getName())) {
+            if (image.getImageGetter().getName().equals(minecraftImage.getImageGetter().getName())) {
                 throw new IllegalArgumentException("There is already an image with the same name");
             }
         }

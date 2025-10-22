@@ -54,7 +54,7 @@ public final class MapifyCommand implements ModRegisterable {
         }
 
         for (MinecraftImage map : MinecraftImageManager.getInstance().getImagesByPlayerId(player.getUuid())) {
-            builder.suggest(map.getImage().getName());
+            builder.suggest(map.getImageGetter().getName());
         }
 
         return builder.buildFuture();
@@ -129,7 +129,7 @@ public final class MapifyCommand implements ModRegisterable {
             return 0;
         }
 
-        if (imageManagerInstance.getImagesByPlayerId(player.getUuid()).stream().anyMatch(image -> image.getImage().getName().equals(nameArg))) {
+        if (imageManagerInstance.getImagesByPlayerId(player.getUuid()).stream().anyMatch(image -> image.getImageGetter().getName().equals(nameArg))) {
             source.sendError(Text.literal(Config.IMAGE_ALREADY_EXISTS));
             return 0;
         }
@@ -202,7 +202,7 @@ public final class MapifyCommand implements ModRegisterable {
 
         MinecraftImage mapImage = null;
         for (MinecraftImage map : allImages) {
-            if (map.getImage().getName().equals(name)) {
+            if (map.getImageGetter().getName().equals(name)) {
                 mapImage = map;
                 break;
             }
@@ -244,7 +244,7 @@ public final class MapifyCommand implements ModRegisterable {
 
         for (int i = 0; i < allPlayerImages.size(); i++) {
             MinecraftImage map = allPlayerImages.get(i);
-            message.append(String.format("%d: %s\n", i + 1, map.getImage().getName()));
+            message.append(String.format("%d: %s\n", i + 1, map.getImageGetter().getName()));
         }
 
         if (allPlayerImages.isEmpty()) {
@@ -278,7 +278,7 @@ public final class MapifyCommand implements ModRegisterable {
 
         List<MinecraftImage> allMapsImage = imageManagerInstance.getImagesByPlayerId(player.getUuid());
         for (MinecraftImage map : allMapsImage) {
-            if (map.getImage().getName().equals(name)) {
+            if (map.getImageGetter().getName().equals(name)) {
                 imageManagerInstance.remove(map);
                 source.sendMessage(Text.literal(Config.IMAGE_REMOVED));
                 return Command.SINGLE_SUCCESS;
@@ -298,13 +298,13 @@ public final class MapifyCommand implements ModRegisterable {
     public static ItemStack createMapItemStack(MinecraftImage mapImage, ServerCommandSource source) {
         ItemStack paper = new ItemStack(Items.PAPER, 1);
 
-        Text paperName = Text.of(String.format("%s %s x %s", mapImage.getImage().getName(), mapImage.getWidth(), mapImage.getHeight()));
+        Text paperName = Text.of(String.format("%s %s x %s", mapImage.getImageGetter().getName(), mapImage.getWidth(), mapImage.getHeight()));
         paper.set(DataComponentTypes.ITEM_NAME, paperName);
 
         String creatorName = Objects.requireNonNull(source.getServer().getPlayerManager().getPlayer(mapImage.getCreatorId())).getName().getString();
 
         LoreComponent loreComponent = new LoreComponent(new ArrayList<>());
-        loreComponent.lines().add(Text.of(mapImage.getImage().getName()));
+        loreComponent.lines().add(Text.of(mapImage.getImageGetter().getName()));
         loreComponent.lines().add(Text.of(Config.CREATED_BY + creatorName));
         paper.set(DataComponentTypes.LORE, loreComponent);
 
@@ -312,7 +312,7 @@ public final class MapifyCommand implements ModRegisterable {
         nbtCompound.putBoolean("mapify", true);
         nbtCompound.putInt("mapify.id", mapImage.getId());
         nbtCompound.putUuid("mapify.creatorId", mapImage.getCreatorId());
-        nbtCompound.putString("mapify.name", mapImage.getImage().getName());
+        nbtCompound.putString("mapify.name", mapImage.getImageGetter().getName());
         nbtCompound.putInt("mapify.width", mapImage.getWidth());
         nbtCompound.putInt("mapify.height", mapImage.getHeight());
 

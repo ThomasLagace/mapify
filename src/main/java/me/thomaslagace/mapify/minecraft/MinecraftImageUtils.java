@@ -1,14 +1,52 @@
 package me.thomaslagace.mapify.minecraft;
 
-import java.awt.Color;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.block.MapColor;
 
-/**
- * Utility class for Minecraft color map related operations.
- */
-public class MinecraftColorMapUtil {
+import me.thomaslagace.mapify.image.ImageUtil;
+import net.minecraft.block.MapColor;
+import net.minecraft.component.type.MapIdComponent;
+import net.minecraft.item.map.MapState;
+import net.minecraft.world.World;
+
+final public class MinecraftImageUtils {
+    public static void assignMapStateToWorld(BufferedImage image, MapIdComponent[][] mapsToWriteTo, World world) {
+        int width = mapsToWriteTo[0].length;
+        int height = mapsToWriteTo.length;
+        BufferedImage resizedImage = ImageUtil.resizeKeepRatio(image, width * 128, height * 128);
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                MapIdComponent mapId = mapsToWriteTo[y][x];
+                MapState mapState = MapState.of((byte) 0, true, world.getRegistryKey());
+
+                for (int i = 0; i < 128; i++) {
+                    for (int j = 0; j < 128; j++) {
+                        int color;
+                        try {
+                            color = resizedImage.getRGB(x * 128 + i, y * 128 + j);
+                        } catch (ArrayIndexOutOfBoundsException e) {
+                            mapState.setColor(i, j, MapColor.CLEAR.getRenderColorByte(MapColor.Brightness.NORMAL));
+                            continue;
+                        }
+
+                        int alpha = (color >> 24) & 0xff;
+                        int red = (color >> 16) & 0xff;
+                        int green = (color >> 8) & 0xff;
+                        int blue = color & 0xff;
+
+                        mapState.setColor(i, j, getClosestRenderColor(red, green, blue, alpha));
+                    }
+                }
+
+                world.putMapState(mapId, mapState);
+            }
+        }
+    }
+
     private static final List<Color> allColors = new ArrayList<>();
 
     static {
@@ -81,9 +119,14 @@ public class MinecraftColorMapUtil {
      * @param r The red component of the color.
      * @param g The green component of the color.
      * @param b The blue component of the color.
+     * @param a The alpha component of the color.
      * @return The closest render Minecraft color.
      */
-    public static byte getClosestRenderColor(int r, int g, int b) {
+    public static byte getClosestRenderColor(int r, int g, int b, int a) {
+        if (a <= 128) {
+            return MapColor.CLEAR.getRenderColorByte(MapColor.Brightness.NORMAL);
+        }
+
         byte closestColor = 0;
         double closestDistance = Double.MAX_VALUE;
 
