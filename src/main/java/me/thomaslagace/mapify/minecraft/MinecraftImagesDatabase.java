@@ -2,10 +2,9 @@ package me.thomaslagace.mapify.minecraft;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+
+import java.util.*;
+
 import net.minecraft.component.type.MapIdComponent;
 import net.minecraft.world.World;
 
@@ -38,6 +37,19 @@ public class MinecraftImagesDatabase {
         for (int i = 0; i < mapIds.size(); i++) {
             int y = i / width;
             int x = i % width;
+
+            formatedMapIds[y][x] = mapIds.get(i);
+        }
+
+        minecraftImage.assignMapIds(formatedMapIds);
+    }
+
+    public void removeMinecraftImage(MinecraftImage minecraftImage) {
+        if (minecraftImages.remove(minecraftImage)) {
+            for (MapIdComponent[] mapIdsComponents : minecraftImage.getMinecraftMapIds()) {
+                unusedMapIds.addAll(Arrays.asList(mapIdsComponents));
+            }
+            minecraftImage.assignMapIds(null);
         }
     }
 
