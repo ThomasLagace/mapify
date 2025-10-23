@@ -21,7 +21,6 @@ import me.thomaslagace.mapify.config.Config;
 import me.thomaslagace.mapify.image.ImageUtil;
 import me.thomaslagace.mapify.image.OnDiskImage;
 import me.thomaslagace.mapify.minecraft.MinecraftImage;
-import me.thomaslagace.mapify.minecraft.MinecraftImageManager;
 import me.thomaslagace.mapify.ModRegisterable;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.CommandRegistryAccess;

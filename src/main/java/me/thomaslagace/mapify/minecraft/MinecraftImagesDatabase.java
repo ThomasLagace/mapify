@@ -1,10 +1,11 @@
 package me.thomaslagace.mapify.minecraft;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-
 import net.minecraft.component.type.MapIdComponent;
 import net.minecraft.world.World;
 
@@ -75,5 +76,16 @@ public class MinecraftImagesDatabase {
         }
 
         return newMapIds;
+    }
+
+    public String serialize() {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        return gson.toJson(this);
+    }
+
+    private static MinecraftImagesDatabase deserialize(String json)  {
+        Gson gson = new Gson();
+
+        return gson.fromJson(json, MinecraftImagesDatabase.class);
     }
 }

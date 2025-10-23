@@ -3,7 +3,6 @@ package me.thomaslagace.mapify.minecraft.rightclick;
 import java.util.List;
 import me.thomaslagace.mapify.config.Config;
 import me.thomaslagace.mapify.minecraft.MinecraftImage;
-import me.thomaslagace.mapify.minecraft.MinecraftImageManager;
 import me.thomaslagace.mapify.ModRegisterable;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.minecraft.component.DataComponentTypes;
