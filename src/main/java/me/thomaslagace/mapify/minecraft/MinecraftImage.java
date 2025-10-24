@@ -1,35 +1,47 @@
 package me.thomaslagace.mapify.minecraft;
 
+import java.util.ArrayList;
 import java.util.UUID;
-
+import me.thomaslagace.mapify.config.Config;
 import me.thomaslagace.mapify.image.OnDiskImageGetter;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.LoreComponent;
 import net.minecraft.component.type.MapIdComponent;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.text.Text;
+import net.minecraft.world.World;
 
 /**
  * Bridge between an image and the Minecraft maps that it is displayed on.
  */
 public class MinecraftImage {
+    private final UUID id;
     private final String name;
     private final UUID creatorId;
     private final OnDiskImageGetter ondiskImageGetter;
     private MapIdComponent[][] minecraftMapIds;
 
-    public MinecraftImage(String name, UUID creatorId, OnDiskImageGetter ondiskImageGetter) {
+    public MinecraftImage(UUID id, String name, UUID creatorId, OnDiskImageGetter ondiskImageGetter) {
+        this.id = id;
         this.name = name;
         this.creatorId = creatorId;
         this.ondiskImageGetter = ondiskImageGetter;
     }
 
-    public MinecraftImage(String name, UUID creatorId, OnDiskImageGetter onDiskImageGetter, MapIdComponent[][] minecraftMapIds) {
-        this(name, creatorId, onDiskImageGetter);
+    public MinecraftImage(UUID id, String name, UUID creatorId, OnDiskImageGetter onDiskImageGetter, MapIdComponent[][] minecraftMapIds) {
+        this(id, name, creatorId, onDiskImageGetter);
         this.minecraftMapIds = minecraftMapIds;
     }
 
     public void assignMapIds(MapIdComponent[][] minecraftMapIds) {
         this.minecraftMapIds = minecraftMapIds;
+    }
+
+    public UUID getId() {
+        return id;
     }
 
     public String getName() {
@@ -45,6 +57,10 @@ public class MinecraftImage {
         return this.creatorId;
     }
 
+    public OnDiskImageGetter getOndiskImageGetter() {
+        return this.ondiskImageGetter;
+    }
+
     /**
      * Gets the ids of the Minecraft maps that the image is displayed on.
      *
@@ -54,22 +70,13 @@ public class MinecraftImage {
         return this.minecraftMapIds;
     }
 
-    /**
-     * Gets the height of the minecraft map image.
-     *
-     * @return The height of the minecraft map image.
-     */
-    public int getHeight() {
-        return this.minecraftMapIds.length;
-    }
-
-    /**
-     * Gets the width of the minecraft map image.
-     *
-     * @return The width of the minecraft map image.
-     */
-    public int getWidth() {
-        return this.minecraftMapIds[0].length;
+    public boolean assignMapsToWorld(World world) {
+        try {
+            MinecraftImageUtils.assignMapStateToWorld(this.ondiskImageGetter.getImage(), this.minecraftMapIds, world);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**
@@ -77,14 +84,17 @@ public class MinecraftImage {
      *
      * @return The map item stacks of the maps.
      */
-    public ItemStack[][] getMapItemStack() {
+    public ItemStack[][] getDisplayMaps() {
         if (this.minecraftMapIds == null) {
             return null;
         }
-        ItemStack[][] maps = new ItemStack[this.getHeight()][this.getWidth()];
+        int width = this.minecraftMapIds[0].length;
+        int height = this.minecraftMapIds.length;
 
-        for (int y = 0; y < this.getHeight(); y++) {
-            for (int x = 0; x < this.getWidth(); x++) {
+        ItemStack[][] maps = new ItemStack[height][width];
+
+        for (int y = 0; y < width; y++) {
+            for (int x = 0; x < height; x++) {
                 MapIdComponent mapId = this.minecraftMapIds[y][x];
                 ItemStack mapItem = new ItemStack(Items.FILLED_MAP, 1);
                 mapItem.set(DataComponentTypes.MAP_ID, mapId);
@@ -93,5 +103,34 @@ public class MinecraftImage {
         }
 
         return maps;
+    }
+
+    public ItemStack createDataMapItem() {
+        if (this.minecraftMapIds == null) {
+            return null;
+        }
+        ItemStack paper = new ItemStack(Items.PAPER, 1);
+
+        int width = this.minecraftMapIds[0].length;
+        int height = this.minecraftMapIds.length;
+
+        Text paperName = Text.of(String.format("%s %s x %s", this.name, width, height));
+        paper.set(DataComponentTypes.ITEM_NAME, paperName);
+
+        String creatorName = this.creatorId.toString();
+
+        LoreComponent loreComponent = new LoreComponent(new ArrayList<>());
+        loreComponent.lines().add(Text.of(this.name));
+        loreComponent.lines().add(Text.of(Config.CREATED_BY + creatorName));
+        paper.set(DataComponentTypes.LORE, loreComponent);
+
+        NbtCompound nbtCompound = new NbtCompound();
+        nbtCompound.putBoolean("mapify", true);
+        nbtCompound.putUuid("mapify.id", this.id);
+
+        NbtComponent nbt = NbtComponent.of(nbtCompound);
+        paper.set(DataComponentTypes.CUSTOM_DATA, nbt);
+
+        return paper;
     }
 }

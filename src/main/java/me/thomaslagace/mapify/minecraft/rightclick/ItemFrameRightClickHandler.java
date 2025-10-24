@@ -94,7 +94,7 @@ public final class ItemFrameRightClickHandler implements ModRegisterable {
             }
         }
 
-        ItemStack[][] mapItems = minecraftImage.getMapItemStack();
+        ItemStack[][] mapItems = minecraftImage.getDisplayMaps();
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 itemFrames[y][x].setHeldItemStack(mapItems[y][x]);

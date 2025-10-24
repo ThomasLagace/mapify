@@ -23,11 +23,29 @@ public class MinecraftImagesDatabase {
         return Collections.unmodifiableList(minecraftImages);
     }
 
-    public void addAndReserveMinecraftImage(MinecraftImage minecraftImage, int width, int height) {
-        for (MinecraftImage imageImage : this.getMinecraftImagesByCreatorId(minecraftImage.getCreatorId())) {
-            if (imageImage.getName().equals(minecraftImage.getName())) {
-                throw new IllegalArgumentException("There is already an image with the same name");
+    public MinecraftImage getMinecraftImageById(UUID id) {
+        for (MinecraftImage minecraftImage : minecraftImages) {
+            if (minecraftImage.getId().equals(id)) {
+                return minecraftImage;
             }
+        }
+
+        return null;
+    }
+
+    public boolean userHasAlreadyThisImageName(UUID creatorId, String imageName) {
+        for (MinecraftImage imageImage : this.getMinecraftImagesByCreatorId(creatorId)) {
+            if (imageImage.getName().equals(imageName)) {
+                return true;
+            }
+        }
+
+         return false;
+    }
+
+    public boolean addAndReserveMinecraftImage(MinecraftImage minecraftImage, int width, int height) {
+        if (userHasAlreadyThisImageName(minecraftImage.getCreatorId(), minecraftImage.getName())) {
+            return false;
         }
 
         List<MapIdComponent> mapIds = getAndReserveMapIds(width * height);
@@ -42,6 +60,7 @@ public class MinecraftImagesDatabase {
         }
 
         minecraftImage.assignMapIds(formatedMapIds);
+        return true;
     }
 
     public void removeMinecraftImage(MinecraftImage minecraftImage) {
