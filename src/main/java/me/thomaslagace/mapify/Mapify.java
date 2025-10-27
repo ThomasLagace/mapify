@@ -47,7 +47,6 @@ public class Mapify implements ModInitializer {
      */
     public void onDisable() {
         try {
-            MinecraftImageManager.getInstance().serialize(Config.STORAGE_PATH);
         } catch (Exception e) {
             LOGGER.error("Failed to serialize the Minecraft images.", e);
         }

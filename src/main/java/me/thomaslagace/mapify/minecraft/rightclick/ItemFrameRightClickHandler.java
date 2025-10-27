@@ -1,9 +1,12 @@
 package me.thomaslagace.mapify.minecraft.rightclick;
 
 import java.util.List;
+
+import me.thomaslagace.mapify.Mapify;
 import me.thomaslagace.mapify.config.Config;
 import me.thomaslagace.mapify.minecraft.MinecraftImage;
 import me.thomaslagace.mapify.ModRegisterable;
+import me.thomaslagace.mapify.minecraft.MinecraftImagesDatabase;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
@@ -21,30 +24,19 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
 
-/**
- * Classe that handles right-clicking on item frames.
- */
-public final class ItemFrameRightClickHandler implements ModRegisterable {
-    /**
-     * Registers the item frame right-click handler.
-     */
-    public void register() {
-        UseEntityCallback.EVENT.register(ItemFrameRightClickHandler::run);
+public class ItemFrameRightClickHandler implements ModRegisterable {
+    private final MinecraftImagesDatabase imagesDatabase;
+
+    public ItemFrameRightClickHandler(MinecraftImagesDatabase imagesDatabase) {
+        this.imagesDatabase = imagesDatabase;
     }
 
-    /**
-     * Handles the right-click on an item frame.
-     *
-     * @param playerEntity The player that right-clicked.
-     * @param world The world.
-     * @param hand The hand that the player used.
-     * @param entity The entity that was right-clicked.
-     * @param entityHitResult The entity hit result.
-     * @return The action result.
-     */
-    private static ActionResult run(PlayerEntity playerEntity, World world, Hand hand, Entity entity, @Nullable EntityHitResult entityHitResult) {
+    public void register() {
+        UseEntityCallback.EVENT.register(this::run);
+    }
+
+    private ActionResult run(PlayerEntity playerEntity, World world, Hand hand, Entity entity, EntityHitResult entityHitResult) {
         if (!(entity instanceof ItemFrameEntity itemFrame)) {
             return ActionResult.PASS;
         }
@@ -66,16 +58,15 @@ public final class ItemFrameRightClickHandler implements ModRegisterable {
             return ActionResult.FAIL;
         }
 
-        MinecraftImageManager imageManagerInstance = MinecraftImageManager.getInstance();
-        MinecraftImage minecraftImage = imageManagerInstance.getMapImageById(usedItemNbtCompound.getInt("mapify.id"));
+        MinecraftImage minecraftImage = Mapify.minecraftImagesDatabase.getMinecraftImageById(usedItemNbtCompound.getUuid("mapify.id"));
 
         if (minecraftImage == null) {
             playerEntity.sendMessage(Text.of(Config.MAP_NOT_FOUND), true);
             return ActionResult.FAIL;
         }
 
-        int width = usedItemNbtCompound.getInt("mapify.width");
-        int height = usedItemNbtCompound.getInt("mapify.height");
+        int width = minecraftImage.getMinecraftMapIds()[0].length;
+        int height = minecraftImage.getMinecraftMapIds().length;
 
         Direction direction = itemFrame.getHorizontalFacing();
         BlockPos itemFramePos = itemFrame.getBlockPos();
@@ -105,7 +96,7 @@ public final class ItemFrameRightClickHandler implements ModRegisterable {
         return ActionResult.SUCCESS;
     }
 
-    private static ItemFrameEntity[][] getAdjacentItemFrames(World world, BlockPos pos, Direction direction, int width, int height) {
+    private ItemFrameEntity[][] getAdjacentItemFrames(World world, BlockPos pos, Direction direction, int width, int height) {
         ItemFrameEntity[][] itemFrames = new ItemFrameEntity[height][width];
 
         for (int y = 0; y < height; y++) {
