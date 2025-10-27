@@ -159,6 +159,13 @@ public class MinecraftImage {
         }
 
         public MinecraftImage build() {
+            if (this.id == null
+             || this.name == null
+             || this.creatorId == null
+             || this.ondiskImageGetter == null
+             || this.minecraftMapIds == null) {
+                return null;
+            }
             MinecraftImage minecraftImage = new MinecraftImage(id, name, creatorId, ondiskImageGetter, minecraftMapIds);
             reset();
             return minecraftImage;
