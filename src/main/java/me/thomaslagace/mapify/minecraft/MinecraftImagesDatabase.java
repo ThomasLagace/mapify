@@ -51,9 +51,9 @@ public class MinecraftImagesDatabase {
          return false;
     }
 
-    public boolean addAndReserveMinecraftImage(MinecraftImage.Builder imageBuilder, int width, int height, World world) {
-        if (userHasAlreadyThisImageName(imageBuilder.getCreatorId(), minecraftImage.getName())) {
-            return false;
+    public MinecraftImage addAndReserveMinecraftImage(MinecraftImage.Builder imageBuilder, int width, int height, World world) {
+        if (userHasAlreadyThisImageName(imageBuilder.getCreatorId(), imageBuilder.getName())) {
+            return null;
         }
 
         List<MapIdComponent> mapIds = getAndReserveMapIds(width * height, world);
@@ -67,9 +67,11 @@ public class MinecraftImagesDatabase {
             formatedMapIds[y][x] = mapIds.get(i);
         }
 
-        minecraftImage.assignMapIds(formatedMapIds);
+        imageBuilder.setMinecraftMapIds(formatedMapIds);
+        MinecraftImage minecraftImage = imageBuilder.build();
         minecraftImages.add(minecraftImage);
-        return true;
+
+        return minecraftImage;
     }
 
     public void removeMinecraftImage(MinecraftImage minecraftImage) {
@@ -77,7 +79,6 @@ public class MinecraftImagesDatabase {
             for (MapIdComponent[] mapIdsComponents : minecraftImage.getMinecraftMapIds()) {
                 unusedMapIds.addAll(Arrays.asList(mapIdsComponents));
             }
-            minecraftImage.assignMapIds(null);
         }
     }
 
