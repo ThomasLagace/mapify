@@ -1,7 +1,6 @@
 package me.thomaslagace.mapify;
 
 import me.thomaslagace.mapify.config.Config;
-import me.thomaslagace.mapify.minecraft.commands.MapifyCommand;
 import me.thomaslagace.mapify.minecraft.rightclick.ItemFrameRightClickHandler;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;

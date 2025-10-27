@@ -1,9 +1,9 @@
 package me.thomaslagace.mapify.minecraft.commands;
 
 import com.mojang.brigadier.Command;
+import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -12,7 +12,6 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.UUID;
 import me.thomaslagace.mapify.IModCommand;
 import me.thomaslagace.mapify.config.Config;
@@ -21,6 +20,7 @@ import me.thomaslagace.mapify.image.OnDiskImageGetter;
 import me.thomaslagace.mapify.image.UrlImageGetter;
 import me.thomaslagace.mapify.minecraft.MinecraftImage;
 import me.thomaslagace.mapify.minecraft.MinecraftImagesDatabase;
+import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -33,28 +33,26 @@ public class MapifyCreateCommand implements IModCommand {
         this.imagesDatabase = imagesDatabase;
     }
 
-
     @Override
-    public List<ArgumentBuilder<ServerCommandSource,? extends ArgumentBuilder<?,?>>> getArguments() {
-        return List.of(
-            CommandManager.literal(Config.MAPIFY_ROOT_COMMAND),
-            CommandManager.literal(Config.MAPIFY_CREATE_ARGUMENT_COMMAND),
-            CommandManager.argument(Config.MAPIFY_WIDTH_ARGUMENT_COMMAND, IntegerArgumentType.integer()),
-            CommandManager.argument(Config.MAPIFY_HEIGHT_ARGUMENT_COMMAND, IntegerArgumentType.integer()),
-            CommandManager.argument(Config.MAPIFY_NAME_ARGUMENT_COMMAND, StringArgumentType.string()),
-            CommandManager.argument(Config.MAPIFY_URL_ARGUMENT_COMMAND, StringArgumentType.greedyString())
-        );
+    public void register(CommandDispatcher<ServerCommandSource> dispatcher,
+                         CommandRegistryAccess commandRegistryAccess,
+                         CommandManager.RegistrationEnvironment environment) {
+        dispatcher.register(CommandManager.literal(Config.MAPIFY_ROOT_COMMAND)
+            .then(CommandManager.literal(Config.MAPIFY_CREATE_ARGUMENT_COMMAND)
+            .then(CommandManager.argument(Config.MAPIFY_WIDTH_ARGUMENT_COMMAND, IntegerArgumentType.integer())
+            .then(CommandManager.argument(Config.MAPIFY_HEIGHT_ARGUMENT_COMMAND, IntegerArgumentType.integer())
+            .then(CommandManager.argument(Config.MAPIFY_NAME_ARGUMENT_COMMAND, StringArgumentType.string())
+            .then(CommandManager.argument(Config.MAPIFY_URL_ARGUMENT_COMMAND, StringArgumentType.greedyString())
+            .executes(this::run)))))));
     }
 
     @Override
     public int run(CommandContext<ServerCommandSource> ctx) {
         ServerCommandSource source = ctx.getSource();
-        if (!(source.getEntity() instanceof ServerPlayerEntity)) {
+        if (!(source.getEntity() instanceof ServerPlayerEntity player)) {
             source.sendError(Text.literal(Config.MUST_BE_PLAYER));
             return 0;
         }
-
-        ServerPlayerEntity player = (ServerPlayerEntity) source.getEntity();
 
         int mapCount = imagesDatabase.getMinecraftImagesByCreatorId(player.getUuid()).size();
         if (mapCount >= Config.MAX_MAPS_COUNT_BY_USER) {

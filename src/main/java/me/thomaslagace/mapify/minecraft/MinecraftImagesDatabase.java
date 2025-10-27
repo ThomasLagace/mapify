@@ -33,6 +33,16 @@ public class MinecraftImagesDatabase {
         return null;
     }
 
+    public MinecraftImage getMinecraftImageByNameAndCreatorId(String name, UUID creatorId) {
+        for (MinecraftImage minecraftImage : getMinecraftImagesByCreatorId(creatorId)) {
+            if (minecraftImage.getName().equals(name)) {
+                return minecraftImage;
+            }
+        }
+
+        return null;
+    }
+
     public boolean userHasAlreadyThisImageName(UUID creatorId, String imageName) {
         for (MinecraftImage imageImage : this.getMinecraftImagesByCreatorId(creatorId)) {
             if (imageImage.getName().equals(imageName)) {
@@ -72,11 +82,11 @@ public class MinecraftImagesDatabase {
         }
     }
 
-    public List<MinecraftImage> getMinecraftImagesByCreatorId(UUID playerId) {
+    public List<MinecraftImage> getMinecraftImagesByCreatorId(UUID creatorId) {
         List<MinecraftImage> minecraftImages = new ArrayList<>();
 
         for (MinecraftImage image : this.minecraftImages) {
-            if (image.getCreatorId().equals(playerId)) {
+            if (image.getCreatorId().equals(creatorId)) {
                 minecraftImages.add(image);
             }
         }

@@ -1,12 +1,14 @@
 package me.thomaslagace.mapify;
 
-import com.mojang.brigadier.builder.ArgumentBuilder;
+import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
+import net.minecraft.command.CommandRegistryAccess;
+import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 
-import java.util.List;
-
 public interface IModCommand {
-    List<ArgumentBuilder<ServerCommandSource,? extends ArgumentBuilder<?,?>>> getArguments();
+    void register(CommandDispatcher<ServerCommandSource> dispatcher,
+                  CommandRegistryAccess commandRegistryAccess,
+                  CommandManager.RegistrationEnvironment environment);
     int run(CommandContext<ServerCommandSource> ctx);
 }
