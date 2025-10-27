@@ -6,6 +6,8 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializer;
 import java.io.File;
 import java.util.*;
+import java.util.function.Consumer;
+
 import me.thomaslagace.mapify.json.FileTypeAdapter;
 import net.minecraft.component.type.MapIdComponent;
 import net.minecraft.world.World;
@@ -13,10 +15,15 @@ import net.minecraft.world.World;
 public class MinecraftImagesDatabase {
     private final List<MinecraftImage> minecraftImages;
     private final List<MapIdComponent> unusedMapIds;
+    private Consumer<MinecraftImagesDatabase> onChangeCallback;
 
     public MinecraftImagesDatabase(List<MinecraftImage> minecraftImages, List<MapIdComponent> unusedMapIds) {
         this.minecraftImages = minecraftImages;
         this.unusedMapIds = unusedMapIds;
+    }
+
+    public void setOnChangeCallback(Consumer<MinecraftImagesDatabase> onChangeCallback) {
+        this.onChangeCallback = onChangeCallback;
     }
 
     public List<MinecraftImage> getMinecraftImages() {
@@ -73,6 +80,7 @@ public class MinecraftImagesDatabase {
         MinecraftImage minecraftImage = imageBuilder.build();
         minecraftImages.add(minecraftImage);
 
+        notifyChange();
         return minecraftImage;
     }
 
@@ -81,6 +89,7 @@ public class MinecraftImagesDatabase {
             for (MapIdComponent[] mapIdsComponents : minecraftImage.getMinecraftMapIds()) {
                 unusedMapIds.addAll(Arrays.asList(mapIdsComponents));
             }
+            notifyChange();
         }
     }
 
@@ -119,6 +128,12 @@ public class MinecraftImagesDatabase {
         }
 
         return newMapIds;
+    }
+
+    private void notifyChange() {
+        if (onChangeCallback != null) {
+            onChangeCallback.accept(this);
+        }
     }
 
     public String serialize() {

@@ -40,6 +40,14 @@ public class Mapify implements ModInitializer {
             LOGGER.error("Failed to load Minecraft IMAGES!", e);
         }
 
+        minecraftImagesDatabase.setOnChangeCallback(minecraftImagesDatabase -> {
+            try {
+                serializeMapify();
+            } catch (Exception e) {
+                LOGGER.error("Failed to serialize Minecraft IMAGES!", e);
+            }
+        });
+
         List<IModRegistrable> registrables = List.of(
             new MapifyCommandsRegistrar(),
             new ItemFrameRightClickHandler(minecraftImagesDatabase)
@@ -57,19 +65,23 @@ public class Mapify implements ModInitializer {
      */
     public void onDisable() {
         try {
-            File file = new File(Config.STORAGE_PATH + "mapify.json");
-            if (!file.getParentFile().exists()) {
-                if (!file.getParentFile().mkdirs()) {
-                    throw new IOException("Failed to create the directory for serialisation: " + file.getParentFile());
-                }
-            }
-            FileOutputStream fileStream = new FileOutputStream(file);
-            String serializedString = minecraftImagesDatabase.serialize();
-
-            fileStream.write(serializedString.getBytes());
-            fileStream.close();
+            serializeMapify();
         } catch (Exception e) {
             LOGGER.error("Failed to serialize the Minecraft images.", e);
         }
+    }
+
+    public static void serializeMapify() throws IOException {
+        File file = new File(Config.STORAGE_PATH + "mapify.json");
+        if (!file.getParentFile().exists()) {
+            if (!file.getParentFile().mkdirs()) {
+                throw new IOException("Failed to create the directory for serialisation: " + file.getParentFile());
+            }
+        }
+        FileOutputStream fileStream = new FileOutputStream(file);
+        String serializedString = minecraftImagesDatabase.serialize();
+
+        fileStream.write(serializedString.getBytes());
+        fileStream.close();
     }
 }
