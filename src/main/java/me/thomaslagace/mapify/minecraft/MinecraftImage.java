@@ -22,21 +22,13 @@ public class MinecraftImage {
     private final String name;
     private final UUID creatorId;
     private final OnDiskImageGetter ondiskImageGetter;
-    private MapIdComponent[][] minecraftMapIds;
+    private final MapIdComponent[][] minecraftMapIds;
 
-    public MinecraftImage(UUID id, String name, UUID creatorId, OnDiskImageGetter ondiskImageGetter) {
+    public MinecraftImage(UUID id, String name, UUID creatorId, OnDiskImageGetter ondiskImageGetter, MapIdComponent[][] minecraftMapIds) {
         this.id = id;
         this.name = name;
         this.creatorId = creatorId;
         this.ondiskImageGetter = ondiskImageGetter;
-    }
-
-    public MinecraftImage(UUID id, String name, UUID creatorId, OnDiskImageGetter onDiskImageGetter, MapIdComponent[][] minecraftMapIds) {
-        this(id, name, creatorId, onDiskImageGetter);
-        this.minecraftMapIds = minecraftMapIds;
-    }
-
-    public void assignMapIds(MapIdComponent[][] minecraftMapIds) {
         this.minecraftMapIds = minecraftMapIds;
     }
 
@@ -132,5 +124,52 @@ public class MinecraftImage {
         paper.set(DataComponentTypes.CUSTOM_DATA, nbt);
 
         return paper;
+    }
+
+    public static class Builder {
+        private UUID id;
+        private String name;
+        private UUID creatorId;
+        private OnDiskImageGetter ondiskImageGetter;
+        private MapIdComponent[][] minecraftMapIds;
+
+        public Builder setId(UUID id) {
+            this.id = id;
+            return this;
+        }
+
+        public Builder setName(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder setCreatorId(UUID creatorId) {
+            this.creatorId = creatorId;
+            return this;
+        }
+
+        public Builder setOnDiskImageGetter(OnDiskImageGetter ondiskImageGetter) {
+            this.ondiskImageGetter = ondiskImageGetter;
+            return this;
+        }
+
+        public Builder setMinecraftMapIds(MapIdComponent[][] minecraftMapIds) {
+            this.minecraftMapIds = minecraftMapIds;
+            return this;
+        }
+
+        public MinecraftImage build() {
+            MinecraftImage minecraftImage = new MinecraftImage(id, name, creatorId, ondiskImageGetter, minecraftMapIds);
+            reset();
+            return minecraftImage;
+        }
+
+        private void reset() {
+            this.id = null;
+            this.name = null;
+            this.creatorId = null;
+            this.ondiskImageGetter = null;
+            this.minecraftMapIds = null;
+        }
     }
 }
