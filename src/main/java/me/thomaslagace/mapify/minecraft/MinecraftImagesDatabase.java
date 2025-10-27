@@ -2,9 +2,11 @@ package me.thomaslagace.mapify.minecraft;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializer;
+import java.io.File;
 import java.util.*;
-
+import me.thomaslagace.mapify.json.FileTypeAdapter;
 import net.minecraft.component.type.MapIdComponent;
 import net.minecraft.world.World;
 
@@ -120,12 +122,22 @@ public class MinecraftImagesDatabase {
     }
 
     public String serialize() {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(File.class, (JsonSerializer<File>) (src, typeOfSrc, context) ->
+                        new JsonPrimitive(src.getAbsolutePath()))
+                .registerTypeAdapter(File.class, new FileTypeAdapter())
+                .setPrettyPrinting()
+                .create();
         return gson.toJson(this);
     }
 
-    private static MinecraftImagesDatabase deserialize(String json)  {
-        Gson gson = new Gson();
+    public static MinecraftImagesDatabase deserialize(String json)  {
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(File.class, (JsonSerializer<File>) (src, typeOfSrc, context) ->
+                    new JsonPrimitive(src.getAbsolutePath()))
+                .registerTypeAdapter(File.class, new FileTypeAdapter())
+                .setPrettyPrinting()
+                .create();
 
         return gson.fromJson(json, MinecraftImagesDatabase.class);
     }
