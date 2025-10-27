@@ -68,6 +68,7 @@ public class MinecraftImagesDatabase {
         }
 
         minecraftImage.assignMapIds(formatedMapIds);
+        minecraftImages.add(minecraftImage);
         return true;
     }
 
