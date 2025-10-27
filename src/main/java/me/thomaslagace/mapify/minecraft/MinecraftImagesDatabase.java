@@ -11,12 +11,10 @@ import net.minecraft.world.World;
 public class MinecraftImagesDatabase {
     private final List<MinecraftImage> minecraftImages;
     private final List<MapIdComponent> unusedMapIds;
-    private final World world;
 
-    public MinecraftImagesDatabase(List<MinecraftImage> minecraftImages, List<MapIdComponent> unusedMapIds, World world) {
+    public MinecraftImagesDatabase(List<MinecraftImage> minecraftImages, List<MapIdComponent> unusedMapIds) {
         this.minecraftImages = minecraftImages;
         this.unusedMapIds = unusedMapIds;
-        this.world = world;
     }
 
     public List<MinecraftImage> getMinecraftImages() {
@@ -53,12 +51,12 @@ public class MinecraftImagesDatabase {
          return false;
     }
 
-    public boolean addAndReserveMinecraftImage(MinecraftImage minecraftImage, int width, int height) {
+    public boolean addAndReserveMinecraftImage(MinecraftImage minecraftImage, int width, int height, World world) {
         if (userHasAlreadyThisImageName(minecraftImage.getCreatorId(), minecraftImage.getName())) {
             return false;
         }
 
-        List<MapIdComponent> mapIds = getAndReserveMapIds(width * height);
+        List<MapIdComponent> mapIds = getAndReserveMapIds(width * height, world);
 
         MapIdComponent[][] formatedMapIds = new MapIdComponent[height][width];
 
@@ -93,7 +91,7 @@ public class MinecraftImagesDatabase {
         return minecraftImages;
     }
 
-    private List<MapIdComponent> getAndReserveMapIds(int amountToReserve) {
+    private List<MapIdComponent> getAndReserveMapIds(int amountToReserve, World world) {
         List<MapIdComponent> mapIds = new ArrayList<>();
         for (MapIdComponent mapIdComponent : this.unusedMapIds) {
             if (mapIds.size() >= amountToReserve) {
@@ -104,14 +102,14 @@ public class MinecraftImagesDatabase {
         }
 
         if (mapIds.size() < amountToReserve) {
-            mapIds.addAll(reserveNewMapIds(amountToReserve - mapIds.size()));
+            mapIds.addAll(reserveNewMapIds(amountToReserve - mapIds.size(), world));
         }
 
         return mapIds;
     }
 
-    private List<MapIdComponent> reserveNewMapIds(int amountToReserve) {
-        List<MapIdComponent> newMapIds = new ArrayList<MapIdComponent>();
+    private List<MapIdComponent> reserveNewMapIds(int amountToReserve, World world) {
+        List<MapIdComponent> newMapIds = new ArrayList<>();
         for (int i = 0; i < amountToReserve; i++) {
             newMapIds.add(world.increaseAndGetMapId());
         }

@@ -112,7 +112,7 @@ public class MapifyCreateCommand implements IModCommand {
 
         MinecraftImage minecraftImage = new MinecraftImage(UUID.randomUUID(), nameArg, player.getUuid(), onDiskImageGetter);
 
-        if (!imagesDatabase.addAndReserveMinecraftImage(minecraftImage, widthArg, heightArg)) {
+        if (!imagesDatabase.addAndReserveMinecraftImage(minecraftImage, widthArg, heightArg, source.getWorld())) {
             return 0;
         }
 
