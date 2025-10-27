@@ -1,5 +1,5 @@
 package me.thomaslagace.mapify;
 
-public interface ModRegisterable {
+public interface IModRegistrable {
     void register();
 }

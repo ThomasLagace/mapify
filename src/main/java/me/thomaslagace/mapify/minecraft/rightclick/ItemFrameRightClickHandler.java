@@ -4,7 +4,7 @@ import java.util.List;
 
 import me.thomaslagace.mapify.config.Config;
 import me.thomaslagace.mapify.minecraft.MinecraftImage;
-import me.thomaslagace.mapify.ModRegisterable;
+import me.thomaslagace.mapify.IModRegistrable;
 import me.thomaslagace.mapify.minecraft.MinecraftImagesDatabase;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.minecraft.component.DataComponentTypes;
@@ -24,7 +24,7 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
-public class ItemFrameRightClickHandler implements ModRegisterable {
+public class ItemFrameRightClickHandler implements IModRegistrable {
     private final MinecraftImagesDatabase imagesDatabase;
 
     public ItemFrameRightClickHandler(MinecraftImagesDatabase imagesDatabase) {

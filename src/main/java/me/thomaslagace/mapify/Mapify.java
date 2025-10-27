@@ -2,7 +2,7 @@ package me.thomaslagace.mapify;
 
 import java.util.ArrayList;
 import java.util.List;
-import me.thomaslagace.mapify.config.Config;
+
 import me.thomaslagace.mapify.minecraft.MinecraftImagesDatabase;
 import me.thomaslagace.mapify.minecraft.commands.MapifyCommandsRegistrar;
 import me.thomaslagace.mapify.minecraft.rightclick.ItemFrameRightClickHandler;
@@ -30,12 +30,12 @@ public class Mapify implements ModInitializer {
     public void onInitialize() {
         minecraftImagesDatabase = new MinecraftImagesDatabase(new ArrayList<>(), new ArrayList<>());
 
-        List<ModRegisterable> registerables = List.of(
+        List<IModRegistrable> registrables = List.of(
             new MapifyCommandsRegistrar(),
             new ItemFrameRightClickHandler(minecraftImagesDatabase)
         );
 
-        registerables.forEach(ModRegisterable::register);
+        registrables.forEach(IModRegistrable::register);
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             this.onDisable();
