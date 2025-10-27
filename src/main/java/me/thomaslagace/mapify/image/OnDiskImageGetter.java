@@ -26,6 +26,10 @@ public class OnDiskImageGetter implements IImageGetter {
     }
 
     public void setImage(BufferedImage image) throws IOException {
+        File parentDir = this.file.getParentFile();
+        if (parentDir != null && !parentDir.exists()) {
+            parentDir.mkdirs();
+        }
         ImageIO.write(image, "png", this.file);
     }
 }
