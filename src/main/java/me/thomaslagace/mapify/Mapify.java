@@ -32,7 +32,7 @@ public class Mapify implements ModInitializer {
 
         List<ModRegisterable> registerables = List.of(
             new MapifyCommandsRegistrar(),
-            new ItemFrameRightClickHandler()
+            new ItemFrameRightClickHandler(minecraftImagesDatabase)
         );
 
         registerables.forEach(ModRegisterable::register);

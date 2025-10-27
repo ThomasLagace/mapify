@@ -2,7 +2,6 @@ package me.thomaslagace.mapify.minecraft.rightclick;
 
 import java.util.List;
 
-import me.thomaslagace.mapify.Mapify;
 import me.thomaslagace.mapify.config.Config;
 import me.thomaslagace.mapify.minecraft.MinecraftImage;
 import me.thomaslagace.mapify.ModRegisterable;
@@ -58,7 +57,7 @@ public class ItemFrameRightClickHandler implements ModRegisterable {
             return ActionResult.FAIL;
         }
 
-        MinecraftImage minecraftImage = Mapify.minecraftImagesDatabase.getMinecraftImageById(usedItemNbtCompound.getUuid("mapify.id"));
+        MinecraftImage minecraftImage = imagesDatabase.getMinecraftImageById(usedItemNbtCompound.getUuid("mapify.id"));
 
         if (minecraftImage == null) {
             playerEntity.sendMessage(Text.of(Config.MAP_NOT_FOUND), true);
