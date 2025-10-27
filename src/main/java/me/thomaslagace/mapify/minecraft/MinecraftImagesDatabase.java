@@ -51,8 +51,8 @@ public class MinecraftImagesDatabase {
          return false;
     }
 
-    public boolean addAndReserveMinecraftImage(MinecraftImage minecraftImage, int width, int height, World world) {
-        if (userHasAlreadyThisImageName(minecraftImage.getCreatorId(), minecraftImage.getName())) {
+    public boolean addAndReserveMinecraftImage(MinecraftImage.Builder imageBuilder, int width, int height, World world) {
+        if (userHasAlreadyThisImageName(imageBuilder.getCreatorId(), minecraftImage.getName())) {
             return false;
         }
 
