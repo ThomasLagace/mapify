@@ -3,6 +3,7 @@ package me.thomaslagace.mapify.minecraft.commands;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
+import java.util.List;
 import me.thomaslagace.mapify.IModCommand;
 import me.thomaslagace.mapify.config.Config;
 import me.thomaslagace.mapify.minecraft.MinecraftImage;
@@ -12,7 +13,6 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import java.util.List;
 
 public class MapifyListCommand implements IModCommand {
     private final MinecraftImagesDatabase imagesDatabase;

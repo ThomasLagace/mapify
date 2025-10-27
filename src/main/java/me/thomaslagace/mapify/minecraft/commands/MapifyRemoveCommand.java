@@ -14,8 +14,6 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
-import java.util.List;
-
 public class MapifyRemoveCommand implements IModCommand {
     private final MinecraftImagesDatabase imagesDatabase;
 
